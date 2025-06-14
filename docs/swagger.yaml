@@ -1,0 +1,414 @@
+definitions:
+  entity.Dimensions:
+    properties:
+      height:
+        type: number
+      length:
+        type: number
+      unit:
+        type: string
+      width:
+        type: number
+    type: object
+  entity.JSONMap:
+    additionalProperties: true
+    type: object
+  entity.Product:
+    properties:
+      brand:
+        type: string
+      category:
+        type: string
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      image_urls:
+        items:
+          type: string
+        type: array
+      is_active:
+        type: boolean
+      name:
+        type: string
+      updated_at:
+        type: string
+      variants:
+        items:
+          $ref: '#/definitions/entity.ProductVariant'
+        type: array
+    type: object
+  entity.ProductVariant:
+    properties:
+      attribute_values:
+        $ref: '#/definitions/entity.JSONMap'
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      dimensions:
+        $ref: '#/definitions/entity.Dimensions'
+      id:
+        type: string
+      image_url:
+        type: string
+      is_active:
+        type: boolean
+      name:
+        type: string
+      price:
+        type: number
+      product_id:
+        type: string
+      sku:
+        type: string
+      stock_quantity:
+        type: integer
+      updated_at:
+        type: string
+      weight:
+        type: number
+    type: object
+  request.AddItemRequest:
+    properties:
+      cart_id:
+        type: string
+      quantity:
+        minimum: 1
+        type: integer
+      variant_id:
+        type: string
+    required:
+    - quantity
+    - variant_id
+    type: object
+  request.ApplyDiscountRequest:
+    properties:
+      cart_id:
+        type: string
+      discount_code:
+        type: string
+    required:
+    - cart_id
+    - discount_code
+    type: object
+  request.RemoveItemRequest:
+    properties:
+      cart_id:
+        type: string
+      variant_id:
+        type: string
+    required:
+    - cart_id
+    - variant_id
+    type: object
+  request.UpdateItemRequest:
+    properties:
+      cart_id:
+        type: string
+      quantity:
+        minimum: 0
+        type: integer
+      variant_id:
+        type: string
+    required:
+    - cart_id
+    - quantity
+    - variant_id
+    type: object
+  response.CartItemResponse:
+    properties:
+      image_url:
+        type: string
+      product_attributes:
+        additionalProperties: true
+        type: object
+      quantity:
+        type: integer
+      variant_id:
+        type: string
+      variant_name:
+        type: string
+      variant_price:
+        type: number
+    type: object
+  response.CartResponse:
+    properties:
+      cart_id:
+        type: string
+      discount_amount:
+        type: number
+      discount_code_applied:
+        type: string
+      items:
+        items:
+          $ref: '#/definitions/response.CartItemResponse'
+        type: array
+      subtotal_amount:
+        type: number
+      total_items:
+        type: integer
+    type: object
+info:
+  contact: {}
+paths:
+  /api/v1/cart/{cart_id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves cart details including items and totals
+      parameters:
+      - description: Cart ID
+        in: path
+        name: cart_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.CartResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get cart details
+      tags:
+      - cart
+  /api/v1/cart/add:
+    post:
+      consumes:
+      - application/json
+      description: Adds a product variant to the cart with specified quantity
+      parameters:
+      - description: Add item request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.AddItemRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.CartResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Add item to cart
+      tags:
+      - cart
+  /api/v1/cart/apply-discount:
+    post:
+      consumes:
+      - application/json
+      description: Applies a discount code to the cart
+      parameters:
+      - description: Apply discount request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.ApplyDiscountRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.CartResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Apply discount to cart
+      tags:
+      - cart
+  /api/v1/cart/remove:
+    post:
+      consumes:
+      - application/json
+      description: Removes a product variant from the cart
+      parameters:
+      - description: Remove item request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.RemoveItemRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.CartResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Remove item from cart
+      tags:
+      - cart
+  /api/v1/cart/update-quantity:
+    post:
+      consumes:
+      - application/json
+      description: Updates the quantity of a product variant in the cart
+      parameters:
+      - description: Update quantity request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateItemRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.CartResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Update cart item quantity
+      tags:
+      - cart
+  /api/v1/products:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves all active products with their variants
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/entity.Product'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get all active products
+      tags:
+      - products
+  /api/v1/products/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a single product by its ID with variants
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.Product'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get a product by ID
+      tags:
+      - products
+swagger: "2.0"

@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/hanifbg/landing_backend/config"
+	_ "github.com/hanifbg/landing_backend/docs"
 	handlerInit "github.com/hanifbg/landing_backend/internal/handler/util"
 	repoInit "github.com/hanifbg/landing_backend/internal/repository/util"
 	servInit "github.com/hanifbg/landing_backend/internal/service/util"
