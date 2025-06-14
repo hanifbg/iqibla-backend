@@ -64,3 +64,19 @@ func (r *RepoDatabase) GetProductVariantByID(variantID string) (*entity.ProductV
 	}
 	return &variant, nil
 }
+
+func (r *RepoDatabase) GetCartWithItems(cartID string) (*entity.Cart, error) {
+	var cart entity.Cart
+
+	result := r.DB.
+		Preload("CartItems").
+		Preload("CartItems.ProductVariant").
+		Where("id = ?", cartID).
+		First(&cart)
+
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return &cart, nil
+}

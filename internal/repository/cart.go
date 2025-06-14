@@ -13,6 +13,7 @@ type CartRepository interface {
 	UpdateCartItem(item *entity.CartItem) error
 	DeleteCartItem(cartID, variantID string) error
 	GetCartItemsByCartID(cartID string) ([]entity.CartItem, error)
+	GetCartWithItems(cartID string) (*entity.Cart, error)
 
 	// Related operations
 	GetDiscountByCode(code string) (*entity.Discount, error)
