@@ -8,6 +8,7 @@ import (
 
 type RepoWrapper struct {
 	ProductRepo repository.ProductRepository
+	CartRepo    repository.CartRepository
 }
 
 func New(cfg *config.AppConfig) (repoWrapper *RepoWrapper, err error) {
@@ -25,6 +26,7 @@ func New(cfg *config.AppConfig) (repoWrapper *RepoWrapper, err error) {
 
 	repoWrapper = &RepoWrapper{
 		ProductRepo: dbConnection,
+		CartRepo:    dbConnection,
 	}
 
 	return

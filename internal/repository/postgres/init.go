@@ -48,6 +48,11 @@ func getConnection(cfg *config.AppConfig) (*gorm.DB, error) {
 		return nil, err
 	}
 
+	// Enable uuid-ossp extension
+	if err := db.Exec("CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\"").Error; err != nil {
+		return nil, fmt.Errorf("failed to enable uuid-ossp extension: %v", err)
+	}
+
 	return db, nil
 }
 
@@ -55,5 +60,8 @@ func (repo *RepoDatabase) MigrateDB() error {
 	return repo.DB.AutoMigrate(
 		&entity.Product{},
 		&entity.ProductVariant{},
+		&entity.Cart{},
+		&entity.CartItem{},
+		&entity.Discount{},
 	)
 }
