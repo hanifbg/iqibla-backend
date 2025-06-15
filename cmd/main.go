@@ -15,6 +15,7 @@ import (
 	repoInit "github.com/hanifbg/landing_backend/internal/repository/util"
 	servInit "github.com/hanifbg/landing_backend/internal/service/util"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 )
 
 func main() {
@@ -38,6 +39,14 @@ func main() {
 	// Initialize Echo
 	e := echo.New()
 	e.Logger.SetLevel(4) // INFO level
+
+	// Configure CORS middleware
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins:     []string{"http://localhost:3000"},
+		AllowMethods:     []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete, echo.OPTIONS},
+		AllowHeaders:     []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization},
+		AllowCredentials: true,
+	}))
 
 	// Initialize handlers
 	handlerInit.InitHandler(cfg, e, serv)

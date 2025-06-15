@@ -103,6 +103,9 @@ func (h *ApiWrapper) RemoveItem(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request format"})
 	}
 
+	// if req.CartID == "" || req.VariantID == "" {
+	// 	return c.JSON(http.StatusBadRequest, map[string]string{"error": "Cart ID and Variant ID are required"})
+	// }
 	response, err := h.cartService.RemoveItem(req)
 	if err != nil {
 		if err.Error() == "cart item not found" {

@@ -28,6 +28,7 @@ func (s *CartService) calculateCartTotals(cart *entity.Cart, discount *entity.Di
 		subtotalAmount += float64(item.Quantity) * item.ProductVariant.Price
 
 		itemResponses = append(itemResponses, response.CartItemResponse{
+			ID:                item.CartID,
 			VariantID:         item.ProductVariant.ID,
 			VariantName:       item.ProductVariant.Name,
 			VariantPrice:      item.ProductVariant.Price,
