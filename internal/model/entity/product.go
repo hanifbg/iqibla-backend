@@ -10,19 +10,21 @@ import (
 )
 
 type Product struct {
-	ID          string           `gorm:"type:uuid;primary_key;default:gen_random_uuid()" json:"id"`
-	Name        string           `gorm:"type:varchar(255);not null" json:"name"`
-	Description string           `gorm:"type:text" json:"description"`
-	Category    string           `gorm:"type:varchar(100)" json:"category"`
-	Brand       string           `gorm:"type:varchar(100)" json:"brand"`
-	Features    JSONArray        `gorm:"type:jsonb" json:"features"`
-	InBoxItems  JSONArray        `gorm:"type:jsonb" json:"in_box_items"`
-	ImageURLs   JSONArray        `gorm:"type:jsonb" json:"image_urls"`
-	IsActive    bool             `gorm:"default:true" json:"is_active"`
-	Variants    []ProductVariant `gorm:"foreignKey:ProductID" json:"variants"`
-	CreatedAt   time.Time        `json:"created_at"`
-	UpdatedAt   time.Time        `json:"updated_at"`
-	DeletedAt   *time.Time       `gorm:"index" json:"deleted_at,omitempty"`
+	ID           string           `gorm:"type:uuid;primary_key;default:gen_random_uuid()" json:"id"`
+	Name         string           `gorm:"type:varchar(255);not null" json:"name"`
+	Description  string           `gorm:"type:text" json:"description"`
+	Category     string           `gorm:"type:varchar(100)" json:"category"`
+	Brand        string           `gorm:"type:varchar(100)" json:"brand"`
+	Features     JSONArray        `gorm:"type:jsonb" json:"features"`
+	InBoxItems   JSONArray        `gorm:"type:jsonb" json:"in_box_items"`
+	ImageURLs    JSONArray        `gorm:"type:jsonb" json:"image_urls"`
+	TokopediaURL *string          `gorm:"type:varchar(255)" json:"tokopedia_url,omitempty"` // Added
+	ShopeeURL    *string          `gorm:"type:varchar(255)" json:"shopee_url,omitempty"`    // Added
+	IsActive     bool             `gorm:"default:true" json:"is_active"`
+	Variants     []ProductVariant `gorm:"foreignKey:ProductID" json:"variants"`
+	CreatedAt    time.Time        `json:"created_at"`
+	UpdatedAt    time.Time        `json:"updated_at"`
+	DeletedAt    *time.Time       `gorm:"index" json:"deleted_at,omitempty"`
 }
 
 type ProductVariant struct {
