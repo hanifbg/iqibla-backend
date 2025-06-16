@@ -42,7 +42,7 @@ func main() {
 
 	// Configure CORS middleware
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins:     []string{"http://localhost:3000"},
+		AllowOrigins:     []string{"*"},
 		AllowMethods:     []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete, echo.OPTIONS},
 		AllowHeaders:     []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization},
 		AllowCredentials: true,
@@ -53,6 +53,9 @@ func main() {
 
 	// Start server
 	serverAddr := "localhost:8081"
+	if cfg.AppPort != 0 {
+		serverAddr = fmt.Sprintf(":%d", cfg.AppPort)
+	}
 	go func() {
 		if err := e.Start(serverAddr); err != nil && err != http.ErrServerClosed {
 			e.Logger.Fatal("shutting down the server")
