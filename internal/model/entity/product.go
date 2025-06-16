@@ -10,34 +10,37 @@ import (
 )
 
 type Product struct {
-	ID          string    `gorm:"type:uuid;primary_key;default:gen_random_uuid()" json:"id"`
-	Name        string    `gorm:"type:varchar(255);not null" json:"name"`
-	Description string    `gorm:"type:text" json:"description"`
-	Category    string    `gorm:"type:varchar(100)" json:"category"`
-	Brand       string    `gorm:"type:varchar(100)" json:"brand"`
-	ImageURLs   JSONArray `gorm:"type:jsonb" json:"image_urls"`
-	IsActive    bool      `gorm:"default:true" json:"is_active"`
+	ID          string           `gorm:"type:uuid;primary_key;default:gen_random_uuid()" json:"id"`
+	Name        string           `gorm:"type:varchar(255);not null" json:"name"`
+	Description string           `gorm:"type:text" json:"description"`
+	Category    string           `gorm:"type:varchar(100)" json:"category"`
+	Brand       string           `gorm:"type:varchar(100)" json:"brand"`
+	Features    JSONArray        `gorm:"type:jsonb" json:"features"`
+	InBoxItems  JSONArray        `gorm:"type:jsonb" json:"in_box_items"`
+	ImageURLs   JSONArray        `gorm:"type:jsonb" json:"image_urls"`
+	IsActive    bool             `gorm:"default:true" json:"is_active"`
 	Variants    []ProductVariant `gorm:"foreignKey:ProductID" json:"variants"`
-	CreatedAt   time.Time  `json:"created_at"`
-	UpdatedAt   time.Time  `json:"updated_at"`
-	DeletedAt   *time.Time `gorm:"index" json:"deleted_at,omitempty"`
+	CreatedAt   time.Time        `json:"created_at"`
+	UpdatedAt   time.Time        `json:"updated_at"`
+	DeletedAt   *time.Time       `gorm:"index" json:"deleted_at,omitempty"`
 }
 
 type ProductVariant struct {
-	ID              string          `gorm:"type:uuid;primary_key;default:gen_random_uuid()" json:"id"`
-	ProductID       string          `gorm:"type:uuid;not null" json:"product_id"`
-	SKU             string          `gorm:"type:varchar(50);uniqueIndex" json:"sku"`
-	Name            string          `gorm:"type:varchar(255)" json:"name"`
-	Price           float64         `gorm:"type:decimal(10,2);not null" json:"price"`
-	StockQuantity   int             `gorm:"not null" json:"stock_quantity"`
-	ImageURL        string          `gorm:"type:varchar(255)" json:"image_url"`
-	Weight          float64         `gorm:"type:decimal(10,2)" json:"weight"`
-	Dimensions      *Dimensions     `gorm:"type:jsonb" json:"dimensions,omitempty"`
-	AttributeValues JSONMap         `gorm:"type:jsonb" json:"attribute_values"`
-	IsActive        bool            `gorm:"default:true" json:"is_active"`
-	CreatedAt       time.Time       `json:"created_at"`
-	UpdatedAt       time.Time       `json:"updated_at"`
-	DeletedAt       *time.Time      `gorm:"index" json:"deleted_at,omitempty"`
+	ID              string      `gorm:"type:uuid;primary_key;default:gen_random_uuid()" json:"id"`
+	ProductID       string      `gorm:"type:uuid;not null" json:"product_id"`
+	SKU             string      `gorm:"type:varchar(50);uniqueIndex" json:"sku"`
+	Name            string      `gorm:"type:varchar(255)" json:"name"`
+	Price           float64     `gorm:"type:decimal(10,2);not null" json:"price"`
+	StockQuantity   int         `gorm:"not null" json:"stock_quantity"`
+	ImageURL        string      `gorm:"type:varchar(255)" json:"image_url"`
+	Weight          float64     `gorm:"type:decimal(10,2)" json:"weight"`
+	Dimensions      *Dimensions `gorm:"type:jsonb" json:"dimensions,omitempty"`
+	AttributeValues JSONMap     `gorm:"type:jsonb" json:"attribute_values"`
+	Specifications  JSONMap     `gorm:"type:jsonb" json:"specifications"` // e.g., {"Display": "0.49 Inch, OLED", "Material": "Plastic", "Battery": "45mAh"}
+	IsActive        bool        `gorm:"default:true" json:"is_active"`
+	CreatedAt       time.Time   `json:"created_at"`
+	UpdatedAt       time.Time   `json:"updated_at"`
+	DeletedAt       *time.Time  `gorm:"index" json:"deleted_at,omitempty"`
 }
 
 type Dimensions struct {

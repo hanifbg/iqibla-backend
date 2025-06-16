@@ -196,8 +196,10 @@ func (s *CartService) ApplyDiscount(req request.ApplyDiscountRequest) (*response
 		return nil, fmt.Errorf("discount has not started yet")
 	}
 
-	if now.After(discount.ExpiresAt) {
-		return nil, fmt.Errorf("discount has expired")
+	if discount.ExpiresAt != nil {
+		if now.After(*discount.ExpiresAt) {
+			return nil, fmt.Errorf("discount has expired")
+		}
 	}
 
 	if discount.UsageLimit != 0 && discount.UsesCount >= discount.UsageLimit {
