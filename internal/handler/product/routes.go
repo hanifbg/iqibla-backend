@@ -19,6 +19,8 @@ func InitRoute(e *echo.Echo, servWrapper *util.ServiceWrapper) {
 
 // registerRouter initialize url route mapping
 func (h *ApiWrapper) registerRouter(e *echo.Echo) {
+	const UPLOAD_DIR = "./uploads"
+	e.Static("/uploads", UPLOAD_DIR)
 	productV1 := e.Group("api/v1/products")
 	productV1.GET("/:id", h.GetProductByID)
 	productV1.GET("", h.GetAllProducts)

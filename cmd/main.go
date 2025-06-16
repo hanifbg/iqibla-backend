@@ -52,7 +52,7 @@ func main() {
 	handlerInit.InitHandler(cfg, e, serv)
 
 	// Start server
-	serverAddr := "localhost:8080"
+	serverAddr := "localhost:8081"
 	go func() {
 		if err := e.Start(serverAddr); err != nil && err != http.ErrServerClosed {
 			e.Logger.Fatal("shutting down the server")
