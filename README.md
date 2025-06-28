@@ -1,6 +1,6 @@
 # iQibla E-commerce API
 
-A Go web application using the Echo framework for handling e-commerce backend operations.
+A Go web application using the Echo framework for handling e-commerce backend operations with integrated payment processing via Midtrans.
 
 ## Project Structure
 
@@ -22,13 +22,15 @@ A Go web application using the Echo framework for handling e-commerce backend op
 
 - Go 1.21 or later
 - Git
+- PostgreSQL database
+- Midtrans account for payment processing
 
 ## Getting Started
 
 1. Clone the repository:
    ```bash
    git clone <repository-url>
-   cd landing_backend
+   cd iqibla-backend
    ```
 
 2. Install dependencies:
@@ -36,7 +38,18 @@ A Go web application using the Echo framework for handling e-commerce backend op
    go mod tidy
    ```
 
-3. Run the server:
+3. Configure the application:
+   - Copy the example configuration file:
+     ```bash
+     cp config/app.config.json.example config/app.config.json
+     ```
+   - Or use environment variables by copying the example .env file:
+     ```bash
+     cp .env.example .env
+     ```
+   - Update the configuration with your database and Midtrans credentials
+
+4. Run the server:
    ```bash
    go run cmd/main.go
    ```
@@ -63,3 +76,27 @@ You should see the message: "Hello, iQibla E-commerce API!"
 - The application uses the Echo framework for routing and HTTP handling
 - Follows standard Go project layout conventions
 - Implements graceful shutdown
+- Uses GORM as the ORM for database operations
+
+## Features
+
+### Product Management
+- Product listing and details
+- Product variants with different prices
+
+### Shopping Cart
+- Add items to cart
+- Update item quantities
+- Remove items from cart
+- Apply discount codes
+
+### Payment Processing
+- Integrated with Midtrans payment gateway
+- Support for various payment methods through Midtrans Snap
+- Order creation and management
+- Payment status tracking
+- Payment notification handling
+
+## API Documentation
+
+Swagger documentation is available at `/swagger/index.html` when the server is running.

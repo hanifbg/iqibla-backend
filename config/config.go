@@ -9,15 +9,18 @@ import (
 )
 
 type AppConfig struct {
-	AppPort     int    `mapstructure:"app_port"`
-	DbDriver    string `mapstructure:"db_driver"`
-	DbHost      string `mapstructure:"db_host"`
-	DbPort      int    `mapstructure:"db_port"`
-	DbUser      string `mapstructure:"db_user"`
-	DbPassword  string `mapstructure:"db_password"`
-	DbName      string `mapstructure:"db_name"`
-	DbSSLMode   string `mapstructure:"db_sslmode"`
-	HttpTimeout int    `mapstructure:"http_timeout"`
+	AppPort           int    `mapstructure:"app_port"`
+	DbDriver          string `mapstructure:"db_driver"`
+	DbHost            string `mapstructure:"db_host"`
+	DbPort            int    `mapstructure:"db_port"`
+	DbUser            string `mapstructure:"db_user"`
+	DbPassword        string `mapstructure:"db_password"`
+	DbName            string `mapstructure:"db_name"`
+	DbSSLMode         string `mapstructure:"db_sslmode"`
+	HttpTimeout       int    `mapstructure:"http_timeout"`
+	MidtransServerKey string `mapstructure:"midtrans_server_key"`
+	MidtransClientKey string `mapstructure:"midtrans_client_key"`
+	IsProduction      bool   `mapstructure:"is_production"`
 }
 
 var (
@@ -59,6 +62,9 @@ func initConfig() (*AppConfig, error) {
 		finalConfig.DbName = getEnvOrDefault("DB_NAME", "iqibla_ecommerce")
 		finalConfig.DbSSLMode = getEnvOrDefault("DB_SSLMODE", "disable")
 		finalConfig.AppPort = getEnvIntOrDefault("APP_PORT", 8080)
+		finalConfig.MidtransServerKey = getEnvOrDefault("MIDTRANS_SERVER_KEY", "")
+		finalConfig.MidtransClientKey = getEnvOrDefault("MIDTRANS_CLIENT_KEY", "")
+		finalConfig.IsProduction = getEnvBoolOrDefault("IS_PRODUCTION", false)
 		return &finalConfig, nil
 	}
 
@@ -71,6 +77,9 @@ func initConfig() (*AppConfig, error) {
 	finalConfig.DbPassword = viper.GetString("database.password")
 	finalConfig.DbName = viper.GetString("database.dbname")
 	finalConfig.DbSSLMode = viper.GetString("database.sslmode")
+	finalConfig.MidtransServerKey = viper.GetString("payment.midtrans_server_key")
+	finalConfig.MidtransClientKey = viper.GetString("payment.midtrans_client_key")
+	finalConfig.IsProduction = viper.GetBool("payment.is_production")
 
 	return &finalConfig, nil
 }
@@ -87,6 +96,13 @@ func getEnvIntOrDefault(key string, defaultValue int) int {
 		if intValue, err := fmt.Sscanf(value, "%d"); err == nil {
 			return intValue
 		}
+	}
+	return defaultValue
+}
+
+func getEnvBoolOrDefault(key string, defaultValue bool) bool {
+	if value := os.Getenv(key); value != "" {
+		return value == "true" || value == "1" || value == "yes"
 	}
 	return defaultValue
 }
