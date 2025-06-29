@@ -22,6 +22,8 @@ type AppConfig struct {
 	MidtransClientKey string `mapstructure:"midtrans_client_key"`
 	IsProduction      bool   `mapstructure:"is_production"`
 	BaseURL           string `mapstructure:"base_url"`
+	RajaOngkirAPIKey  string `mapstructure:"rajaongkir_api_key"`
+	RajaOngkirBaseURL string `mapstructure:"rajaongkir_base_url"`
 }
 
 var (
@@ -81,6 +83,10 @@ func initConfig() (*AppConfig, error) {
 	finalConfig.MidtransServerKey = viper.GetString("payment.midtrans_server_key")
 	finalConfig.MidtransClientKey = viper.GetString("payment.midtrans_client_key")
 	finalConfig.IsProduction = viper.GetBool("payment.is_production")
+	finalConfig.BaseURL = viper.GetString("base_url")
+	finalConfig.HttpTimeout = viper.GetInt("http_timeout")
+	finalConfig.RajaOngkirAPIKey = viper.GetString("shipping.rajaongkir_api_key")
+	finalConfig.RajaOngkirBaseURL = viper.GetString("shipping.rajaongkir_base_url")
 
 	return &finalConfig, nil
 }
