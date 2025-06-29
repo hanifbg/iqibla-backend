@@ -43,10 +43,6 @@ A Go web application using the Echo framework for handling e-commerce backend op
      ```bash
      cp config/app.config.json.example config/app.config.json
      ```
-   - Or use environment variables by copying the example .env file:
-     ```bash
-     cp .env.example .env
-     ```
    - Update the configuration with your database and Midtrans credentials
 
 4. Run the server:

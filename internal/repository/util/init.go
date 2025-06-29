@@ -28,7 +28,7 @@ func New(cfg *config.AppConfig) (repoWrapper *RepoWrapper, err error) {
 	repoWrapper = &RepoWrapper{
 		ProductRepo: dbConnection,
 		CartRepo:    dbConnection,
-		PaymentRepo: db.NewPaymentRepository(dbConnection.DB),
+		PaymentRepo: dbConnection,
 	}
 
 	return

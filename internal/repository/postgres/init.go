@@ -2,7 +2,6 @@ package postgres
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/hanifbg/landing_backend/config"
 	"github.com/hanifbg/landing_backend/internal/model/entity"
@@ -22,14 +21,14 @@ func Init(config *config.AppConfig) (*RepoDatabase, error) {
 	}
 
 	repo.DB = db
-	// Run database migrations
-	if err := repo.MigrateDB(); err != nil {
-		log.Fatalf("Failed to run database migrations: %v", err)
-	}
-	// Seed test data
-	if err := repo.SeedTestData(); err != nil {
-		log.Printf("Warning: Failed to seed test data: %v", err)
-	}
+	// // Run database migrations
+	// if err := repo.MigrateDB(); err != nil {
+	// 	log.Fatalf("Failed to run database migrations: %v", err)
+	// }
+	// // Seed test data
+	// if err := repo.SeedTestData(); err != nil {
+	// 	log.Printf("Warning: Failed to seed test data: %v", err)
+	// }
 	return repo, nil
 }
 
