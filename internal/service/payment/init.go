@@ -1,7 +1,9 @@
 package payment
 
 import (
+	"github.com/hanifbg/landing_backend/config"
 	"github.com/hanifbg/landing_backend/internal/repository"
+	"github.com/hanifbg/landing_backend/internal/repository/util"
 	"github.com/midtrans/midtrans-go"
 	"github.com/midtrans/midtrans-go/snap"
 )
@@ -15,18 +17,25 @@ type PaymentService struct {
 	paymentRepo repository.PaymentRepository
 	cartRepo    repository.CartRepository
 	snapClient  SnapClientInterface
+	baseURL     string
 }
 
-func NewPaymentService(paymentRepo repository.PaymentRepository, cartRepo repository.CartRepository, snapClient SnapClientInterface) *PaymentService {
+// New creates a PaymentService following the same pattern as other services
+func New(cfg *config.AppConfig, repo *util.RepoWrapper) *PaymentService {
+	return NewPaymentServiceWithMidtrans(repo.PaymentRepo, repo.CartRepo, cfg.MidtransServerKey, cfg.IsProduction, cfg.BaseURL)
+}
+
+func NewPaymentService(paymentRepo repository.PaymentRepository, cartRepo repository.CartRepository, snapClient SnapClientInterface, baseURL string) *PaymentService {
 	return &PaymentService{
 		paymentRepo: paymentRepo,
 		cartRepo:    cartRepo,
 		snapClient:  snapClient,
+		baseURL:     baseURL,
 	}
 }
 
 // NewPaymentServiceWithMidtrans creates a PaymentService with a real Midtrans client
-func NewPaymentServiceWithMidtrans(paymentRepo repository.PaymentRepository, cartRepo repository.CartRepository, midtransServerKey string, isProduction bool) *PaymentService {
+func NewPaymentServiceWithMidtrans(paymentRepo repository.PaymentRepository, cartRepo repository.CartRepository, midtransServerKey string, isProduction bool, baseURL string) *PaymentService {
 	// Initialize Midtrans client
 	// Set environment based on isProduction flag
 	env := midtrans.Sandbox
@@ -42,5 +51,6 @@ func NewPaymentServiceWithMidtrans(paymentRepo repository.PaymentRepository, car
 		paymentRepo: paymentRepo,
 		cartRepo:    cartRepo,
 		snapClient:  &snapClient,
+		baseURL:     baseURL,
 	}
 }

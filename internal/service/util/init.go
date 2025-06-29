@@ -19,7 +19,7 @@ func New(cfg *config.AppConfig, repoWrapper *util.RepoWrapper) (serviceWrapper *
 	serviceWrapper = &ServiceWrapper{
 		ProductService: product.New(cfg, repoWrapper),
 		CartService:    cart.New(cfg, repoWrapper),
-		PaymentService: payment.NewPaymentServiceWithMidtrans(repoWrapper.PaymentRepo, repoWrapper.CartRepo, cfg.MidtransServerKey, cfg.IsProduction),
+		PaymentService: payment.New(cfg, repoWrapper),
 	}
 
 	return

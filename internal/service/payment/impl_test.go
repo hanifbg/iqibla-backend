@@ -52,8 +52,7 @@ func TestPaymentService_CreateOrder(t *testing.T) {
 		}
 
 		mockCartRepo.EXPECT().GetCartWithItems("cart-123").Return(cart, nil)
-		mockPaymentRepo.EXPECT().CreateOrder(gomock.Any()).Return(nil)
-		mockPaymentRepo.EXPECT().CreateOrderItem(gomock.Any()).Return(nil).Times(2)
+		mockPaymentRepo.EXPECT().CreateOrderWithItems(gomock.Any(), gomock.Any()).Return(nil)
 		// Mock GetProductVariantByID calls for response preparation
 		mockCartRepo.EXPECT().GetProductVariantByID("variant-1").Return(&entity.ProductVariant{
 			ID: "variant-1", Name: "Test Product 1", Price: 200.0, ImageURL: "image1.jpg",
@@ -166,7 +165,7 @@ func TestPaymentService_CreateOrder(t *testing.T) {
 		}
 
 		mockCartRepo.EXPECT().GetCartWithItems("cart-123").Return(cart, nil)
-		mockPaymentRepo.EXPECT().CreateOrder(gomock.Any()).Return(errors.New("database error"))
+		mockPaymentRepo.EXPECT().CreateOrderWithItems(gomock.Any(), gomock.Any()).Return(errors.New("database error"))
 
 		// Act
 		result, err := service.CreateOrder(req)
@@ -174,7 +173,7 @@ func TestPaymentService_CreateOrder(t *testing.T) {
 		// Assert
 		assert.Error(t, err)
 		assert.Nil(t, result)
-		assert.Contains(t, err.Error(), "failed to create order")
+		assert.Contains(t, err.Error(), "failed to create order with items")
 
 
 	})
@@ -526,14 +525,14 @@ func TestPaymentService_HandlePaymentNotification_ErrorCases(t *testing.T) {
 		}
 
 		mockPaymentRepo.EXPECT().FindPaymentByOrderID("order-123").Return(payment, nil)
-		mockPaymentRepo.EXPECT().UpdatePayment(gomock.Any()).Return(errors.New("database error"))
+		mockPaymentRepo.EXPECT().UpdatePaymentAndOrderStatus(gomock.Any(), "order-123", "processing").Return(errors.New("database error"))
 
 		// Act
 		err := service.HandlePaymentNotification(notification)
 
 		// Assert
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "failed to update payment")
+		assert.Contains(t, err.Error(), "failed to update payment and order status")
 	})
 
 	t.Run("Error - Order status update failure", func(t *testing.T) {
@@ -555,15 +554,14 @@ func TestPaymentService_HandlePaymentNotification_ErrorCases(t *testing.T) {
 		}
 
 		mockPaymentRepo.EXPECT().FindPaymentByOrderID("order-123").Return(payment, nil)
-		mockPaymentRepo.EXPECT().UpdatePayment(gomock.Any()).Return(nil)
-		mockPaymentRepo.EXPECT().UpdateOrderStatus("order-123", "processing").Return(errors.New("database error"))
+		mockPaymentRepo.EXPECT().UpdatePaymentAndOrderStatus(gomock.Any(), "order-123", "processing").Return(errors.New("database error"))
 
 		// Act
 		err := service.HandlePaymentNotification(notification)
 
 		// Assert
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "failed to update order status")
+		assert.Contains(t, err.Error(), "failed to update payment and order status")
 	})
 }
 
@@ -647,8 +645,7 @@ func TestPaymentService_HandlePaymentNotification(t *testing.T) {
 		}
 
 		mockPaymentRepo.EXPECT().FindPaymentByOrderID("order-123").Return(payment, nil)
-		mockPaymentRepo.EXPECT().UpdatePayment(gomock.Any()).Return(nil)
-		mockPaymentRepo.EXPECT().UpdateOrderStatus("order-123", "processing").Return(nil)
+		mockPaymentRepo.EXPECT().UpdatePaymentAndOrderStatus(gomock.Any(), "order-123", "processing").Return(nil)
 
 		// Act
 		err := service.HandlePaymentNotification(notification)
@@ -678,8 +675,7 @@ func TestPaymentService_HandlePaymentNotification(t *testing.T) {
 		}
 
 		mockPaymentRepo.EXPECT().FindPaymentByOrderID("order-123").Return(payment, nil)
-		mockPaymentRepo.EXPECT().UpdatePayment(gomock.Any()).Return(nil)
-		mockPaymentRepo.EXPECT().UpdateOrderStatus("order-123", "pending").Return(nil)
+		mockPaymentRepo.EXPECT().UpdatePaymentAndOrderStatus(gomock.Any(), "order-123", "pending").Return(nil)
 
 		// Act
 		err := service.HandlePaymentNotification(notification)
@@ -709,8 +705,7 @@ func TestPaymentService_HandlePaymentNotification(t *testing.T) {
 		}
 
 		mockPaymentRepo.EXPECT().FindPaymentByOrderID("order-123").Return(payment, nil)
-		mockPaymentRepo.EXPECT().UpdatePayment(gomock.Any()).Return(nil)
-		mockPaymentRepo.EXPECT().UpdateOrderStatus("order-123", "cancelled").Return(nil)
+		mockPaymentRepo.EXPECT().UpdatePaymentAndOrderStatus(gomock.Any(), "order-123", "cancelled").Return(nil)
 
 		// Act
 		err := service.HandlePaymentNotification(notification)
@@ -843,14 +838,14 @@ func TestPaymentService_HandlePaymentNotification(t *testing.T) {
 		}
 
 		mockPaymentRepo.EXPECT().FindPaymentByOrderID("order-123").Return(payment, nil)
-		mockPaymentRepo.EXPECT().UpdatePayment(gomock.Any()).Return(errors.New("database error"))
+		mockPaymentRepo.EXPECT().UpdatePaymentAndOrderStatus(gomock.Any(), "order-123", "processing").Return(errors.New("database error"))
 
 		// Act
 		err := service.HandlePaymentNotification(notification)
 
 		// Assert
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "failed to update payment")
+		assert.Contains(t, err.Error(), "failed to update payment and order status")
 	})
 }
 
@@ -932,7 +927,7 @@ func TestNewPaymentService(t *testing.T) {
 		mockSnapClient := mocks.NewMockSnapClientInterface(ctrl)
 
 		// Act
-		service := NewPaymentService(mockPaymentRepo, mockCartRepo, mockSnapClient)
+		service := NewPaymentService(mockPaymentRepo, mockCartRepo, mockSnapClient, "http://localhost:8080")
 
 		// Assert
 		assert.NotNil(t, service)
@@ -954,7 +949,7 @@ func TestNewPaymentServiceWithMidtrans(t *testing.T) {
 		isProduction := false
 
 		// Act
-		service := NewPaymentServiceWithMidtrans(mockPaymentRepo, mockCartRepo, serverKey, isProduction)
+		service := NewPaymentServiceWithMidtrans(mockPaymentRepo, mockCartRepo, serverKey, isProduction, "http://localhost:8080")
 
 		// Assert
 		assert.NotNil(t, service)
@@ -974,7 +969,7 @@ func TestNewPaymentServiceWithMidtrans(t *testing.T) {
 		isProduction := true
 
 		// Act
-		service := NewPaymentServiceWithMidtrans(mockPaymentRepo, mockCartRepo, serverKey, isProduction)
+		service := NewPaymentServiceWithMidtrans(mockPaymentRepo, mockCartRepo, serverKey, isProduction, "http://localhost:8080")
 
 		// Assert
 		assert.NotNil(t, service)
@@ -1006,7 +1001,7 @@ func TestPaymentService_CreateOrder_ErrorCases(t *testing.T) {
 		}
 
 		mockCartRepo.EXPECT().GetCartWithItems("cart-123").Return(cart, nil)
-		mockPaymentRepo.EXPECT().CreateOrder(gomock.Any()).Return(errors.New("database error"))
+		mockPaymentRepo.EXPECT().CreateOrderWithItems(gomock.Any(), gomock.Any()).Return(errors.New("database error"))
 
 		// Act
 		result, err := service.CreateOrder(req)
@@ -1014,7 +1009,7 @@ func TestPaymentService_CreateOrder_ErrorCases(t *testing.T) {
 		// Assert
 		assert.Error(t, err)
 		assert.Nil(t, result)
-		assert.Contains(t, err.Error(), "failed to create order")
+		assert.Contains(t, err.Error(), "failed to create order with items")
 	})
 }
 

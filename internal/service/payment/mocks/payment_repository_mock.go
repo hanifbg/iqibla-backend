@@ -62,6 +62,20 @@ func (mr *MockPaymentRepositoryMockRecorder) CreateOrderItem(item interface{}) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateOrderItem", reflect.TypeOf((*MockPaymentRepository)(nil).CreateOrderItem), item)
 }
 
+// CreateOrderWithItems mocks base method.
+func (m *MockPaymentRepository) CreateOrderWithItems(order *entity.Order, items []entity.OrderItem) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateOrderWithItems", order, items)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreateOrderWithItems indicates an expected call of CreateOrderWithItems.
+func (mr *MockPaymentRepositoryMockRecorder) CreateOrderWithItems(order, items interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateOrderWithItems", reflect.TypeOf((*MockPaymentRepository)(nil).CreateOrderWithItems), order, items)
+}
+
 // CreatePayment mocks base method.
 func (m *MockPaymentRepository) CreatePayment(payment *entity.Payment) error {
 	m.ctrl.T.Helper()
@@ -177,6 +191,20 @@ func (m *MockPaymentRepository) UpdatePayment(payment *entity.Payment) error {
 func (mr *MockPaymentRepositoryMockRecorder) UpdatePayment(payment interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatePayment", reflect.TypeOf((*MockPaymentRepository)(nil).UpdatePayment), payment)
+}
+
+// UpdatePaymentAndOrderStatus mocks base method.
+func (m *MockPaymentRepository) UpdatePaymentAndOrderStatus(payment *entity.Payment, orderID, orderStatus string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdatePaymentAndOrderStatus", payment, orderID, orderStatus)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdatePaymentAndOrderStatus indicates an expected call of UpdatePaymentAndOrderStatus.
+func (mr *MockPaymentRepositoryMockRecorder) UpdatePaymentAndOrderStatus(payment, orderID, orderStatus interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatePaymentAndOrderStatus", reflect.TypeOf((*MockPaymentRepository)(nil).UpdatePaymentAndOrderStatus), payment, orderID, orderStatus)
 }
 
 // UpdatePaymentStatus mocks base method.

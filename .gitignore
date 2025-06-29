@@ -6,4 +6,4 @@ app.yaml
 .gcloudignore
 coverage.html
 coverage.out
-cmd.exe
+*.exe

@@ -70,16 +70,9 @@ func (s *PaymentService) CreateOrder(req request.CreateOrderRequest) (*response.
 		orderItems = append(orderItems, orderItem)
 	}
 
-	// Save order to database
-	if err := s.paymentRepo.CreateOrder(order); err != nil {
-		return nil, fmt.Errorf("failed to create order: %v", err)
-	}
-
-	// Save order items
-	for i := range orderItems {
-		if err := s.paymentRepo.CreateOrderItem(&orderItems[i]); err != nil {
-			return nil, fmt.Errorf("failed to create order item: %v", err)
-		}
+	// Save order and order items in a single transaction
+	if err := s.paymentRepo.CreateOrderWithItems(order, orderItems); err != nil {
+		return nil, fmt.Errorf("failed to create order with items: %v", err)
 	}
 
 	// Prepare response
@@ -213,7 +206,7 @@ func (s *PaymentService) CreatePayment(orderID string) (*response.PaymentRespons
 			snap.PaymentTypeCreditCard,
 		},
 		Callbacks: &snap.Callbacks{
-			Finish: "https://example.com/callback", // Replace with your callback URL
+			Finish: s.baseURL + "/api/v1/payments/notification",
 		},
 	}
 
@@ -387,14 +380,9 @@ func (s *PaymentService) HandlePaymentNotification(notification request.PaymentN
 		}
 	}
 
-	// Update payment in database
-	if err := s.paymentRepo.UpdatePayment(payment); err != nil {
-		return fmt.Errorf("failed to update payment: %v", err)
-	}
-
-	// Update order status
-	if err := s.paymentRepo.UpdateOrderStatus(orderID, orderStatus); err != nil {
-		return fmt.Errorf("failed to update order status: %v", err)
+	// Update payment and order status in a single transaction
+	if err := s.paymentRepo.UpdatePaymentAndOrderStatus(payment, orderID, orderStatus); err != nil {
+		return fmt.Errorf("failed to update payment and order status: %v", err)
 	}
 
 	return nil

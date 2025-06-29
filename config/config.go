@@ -21,6 +21,7 @@ type AppConfig struct {
 	MidtransServerKey string `mapstructure:"midtrans_server_key"`
 	MidtransClientKey string `mapstructure:"midtrans_client_key"`
 	IsProduction      bool   `mapstructure:"is_production"`
+	BaseURL           string `mapstructure:"base_url"`
 }
 
 var (
