@@ -52,25 +52,35 @@ type Payment struct {
 
 // Order represents an order in the system
 type Order struct {
-	ID              string         `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()" json:"id"`
-	CartID          string         `gorm:"type:uuid;not null;index" json:"cart_id"`
-	CustomerID      *string        `gorm:"type:uuid;index" json:"customer_id,omitempty"`
-	CustomerName    string         `gorm:"type:varchar(255)" json:"customer_name"`
-	CustomerEmail   string         `gorm:"type:varchar(255)" json:"customer_email"`
-	CustomerPhone   string         `gorm:"type:varchar(20)" json:"customer_phone"`
-	ShippingAddress string         `gorm:"type:text" json:"shipping_address"`
-	OrderItems      []OrderItem    `gorm:"foreignKey:OrderID" json:"order_items,omitempty"`
-	Subtotal        float64        `gorm:"type:decimal(10,2);not null" json:"subtotal"`
-	DiscountAmount  float64        `gorm:"type:decimal(10,2);default:0" json:"discount_amount"`
-	DiscountCode    string         `gorm:"type:varchar(50)" json:"discount_code,omitempty"`
-	ShippingCost    float64        `gorm:"type:decimal(10,2);default:0" json:"shipping_cost"`
-	TotalAmount     float64        `gorm:"type:decimal(10,2);not null" json:"total_amount"`
-	OrderStatus     string         `gorm:"type:varchar(20);not null;default:'pending'" json:"order_status"`
-	Notes           string         `gorm:"type:text" json:"notes,omitempty"`
-	Payment         *Payment       `gorm:"foreignKey:OrderID" json:"payment,omitempty"`
-	CreatedAt       time.Time      `gorm:"not null" json:"created_at"`
-	UpdatedAt       time.Time      `gorm:"not null" json:"updated_at"`
-	DeletedAt       gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`
+	ID                            string         `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()" json:"id"`
+	OrderNumber                   string         `gorm:"type:varchar(50);uniqueIndex" json:"order_number"`
+	CartID                        string         `gorm:"type:uuid;not null;index" json:"cart_id"`
+	CustomerID                    *string        `gorm:"type:uuid;index" json:"customer_id,omitempty"`
+	CustomerName                  string         `gorm:"type:varchar(255)" json:"customer_name"`
+	CustomerEmail                 string         `gorm:"type:varchar(255)" json:"customer_email"`
+	CustomerPhone                 string         `gorm:"type:varchar(50)" json:"customer_phone"`
+	ShippingStreetAddress         string         `gorm:"type:varchar(255)" json:"shipping_street_address"`
+	ShippingCity                  string         `gorm:"type:varchar(100)" json:"shipping_city"`
+	ShippingProvince              string         `gorm:"type:varchar(100)" json:"shipping_province"`
+	ShippingPostalCode            string         `gorm:"type:varchar(20)" json:"shipping_postal_code"`
+	ShippingCountry               string         `gorm:"type:varchar(100)" json:"shipping_country"`
+	BillingAddressDetails         JSONMap        `gorm:"type:jsonb" json:"billing_address_details,omitempty"`
+	OrderItems                    []OrderItem    `gorm:"foreignKey:OrderID" json:"order_items,omitempty"`
+	Subtotal                      float64        `gorm:"type:decimal(10,2);not null" json:"subtotal"`
+	DiscountAmount                float64        `gorm:"type:decimal(10,2);default:0" json:"discount_amount"`
+	DiscountCodeApplied           string         `gorm:"type:varchar(50)" json:"discount_code_applied,omitempty"`
+	ShippingCost                  float64        `gorm:"type:decimal(10,2);default:0" json:"shipping_cost"`
+	TotalAmount                   float64        `gorm:"type:decimal(10,2);not null" json:"total_amount"`
+	Currency                      string         `gorm:"type:varchar(3);default:'IDR'" json:"currency"`
+	OrderStatus                   string         `gorm:"type:varchar(20);not null;default:'pending'" json:"order_status"`
+	PaymentProcessor              string         `gorm:"type:varchar(50)" json:"payment_processor,omitempty"`
+	PaymentGatewayTransactionID   string         `gorm:"type:varchar(255)" json:"payment_gateway_transaction_id,omitempty"`
+	SourceChannel                 string         `gorm:"type:varchar(50);default:'web'" json:"source_channel"`
+	Notes                         string         `gorm:"type:text" json:"notes,omitempty"`
+	Payment                       *Payment       `gorm:"foreignKey:OrderID" json:"payment,omitempty"`
+	CreatedAt                     time.Time      `gorm:"not null" json:"created_at"`
+	UpdatedAt                     time.Time      `gorm:"not null" json:"updated_at"`
+	DeletedAt                     gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`
 }
 
 // OrderItem represents an item in an order
@@ -80,8 +90,7 @@ type OrderItem struct {
 	ProductVariantID string          `gorm:"type:uuid;not null" json:"product_variant_id"`
 	ProductVariant   *ProductVariant `gorm:"foreignKey:ProductVariantID" json:"product_variant,omitempty"`
 	Quantity         int             `gorm:"not null" json:"quantity"`
-	UnitPrice        float64         `gorm:"type:decimal(10,2);not null" json:"unit_price"`
-	Subtotal         float64         `gorm:"type:decimal(10,2);not null" json:"subtotal"`
+	PriceAtPurchase  float64         `gorm:"type:decimal(10,2);not null" json:"price_at_purchase"`
 	CreatedAt        time.Time       `gorm:"not null" json:"created_at"`
 	UpdatedAt        time.Time       `gorm:"not null" json:"updated_at"`
 	DeletedAt        gorm.DeletedAt  `gorm:"index" json:"deleted_at,omitempty"`

@@ -7,32 +7,35 @@ import (
 )
 
 type OrderItemResponse struct {
-	ID               string                 `json:"id"`
-	ProductVariantID string                 `json:"product_variant_id"`
-	VariantName      string                 `json:"variant_name"`
-	Quantity         int                    `json:"quantity"`
-	UnitPrice        float64                `json:"unit_price"`
-	Subtotal         float64                `json:"subtotal"`
-	ImageURL         string                 `json:"image_url"`
-	Attributes       map[string]interface{} `json:"attributes,omitempty"`
+	ID               string  `json:"id"`
+	ProductVariantID string  `json:"product_variant_id"`
+	Quantity         int     `json:"quantity"`
+	PriceAtPurchase  float64 `json:"price_at_purchase"`
 }
 
 type OrderResponse struct {
-	ID              string              `json:"id"`
-	CartID          string              `json:"cart_id"`
-	CustomerName    string              `json:"customer_name"`
-	CustomerEmail   string              `json:"customer_email"`
-	CustomerPhone   string              `json:"customer_phone"`
-	ShippingAddress string              `json:"shipping_address"`
-	Subtotal        float64             `json:"subtotal"`
-	DiscountAmount  float64             `json:"discount_amount"`
-	DiscountCode    string              `json:"discount_code,omitempty"`
-	ShippingCost    float64             `json:"shipping_cost"`
-	TotalAmount     float64             `json:"total_amount"`
-	OrderStatus     string              `json:"order_status"`
-	Notes           string              `json:"notes,omitempty"`
-	Items           []OrderItemResponse `json:"items"`
-	CreatedAt       time.Time           `json:"created_at"`
+	ID                      string              `json:"id"`
+	OrderNumber             string              `json:"order_number"`
+	CartID                  string              `json:"cart_id"`
+	CustomerName            string              `json:"customer_name"`
+	CustomerEmail           string              `json:"customer_email"`
+	CustomerPhone           string              `json:"customer_phone"`
+	ShippingAddress         string              `json:"shipping_address"`
+	Subtotal                float64             `json:"subtotal"`
+	DiscountAmount          float64             `json:"discount_amount"`
+	DiscountCodeApplied     string              `json:"discount_code_applied,omitempty"`
+	ShippingCost            float64             `json:"shipping_cost"`
+	TotalAmount             float64             `json:"total_amount"`
+	Currency                string              `json:"currency"`
+	OrderStatus             string              `json:"order_status"`
+	PaymentProcessor        string              `json:"payment_processor,omitempty"`
+	PaymentGatewayTransactionID string          `json:"payment_gateway_transaction_id,omitempty"`
+	SourceChannel           string              `json:"source_channel"`
+	Notes                   string              `json:"notes,omitempty"`
+	OrderItems              []OrderItemResponse `json:"order_items,omitempty"`
+	Payment                 *PaymentResponse    `json:"payment,omitempty"`
+	CreatedAt               time.Time           `json:"created_at"`
+	UpdatedAt               time.Time           `json:"updated_at"`
 }
 
 type PaymentResponse struct {

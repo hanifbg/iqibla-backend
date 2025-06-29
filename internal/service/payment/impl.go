@@ -37,21 +37,27 @@ func (s *PaymentService) CreateOrder(req request.CreateOrderRequest) (*response.
 	// Create order
 	orderID := uuid.New().String()
 	order := &entity.Order{
-		ID:              orderID,
-		CartID:          req.CartID,
-		CustomerName:    req.CustomerName,
-		CustomerEmail:   req.CustomerEmail,
-		CustomerPhone:   req.CustomerPhone,
-		ShippingAddress: req.ShippingAddress,
-		Subtotal:        subtotal,
-		DiscountAmount:  discountAmount,
-		DiscountCode:    discountCode,
-		ShippingCost:    0, // Implement shipping cost calculation if needed
-		TotalAmount:     subtotal - discountAmount,
-		OrderStatus:     "pending",
-		Notes:           req.Notes,
-		CreatedAt:       time.Now(),
-		UpdatedAt:       time.Now(),
+		ID:                    orderID,
+		CartID:                req.CartID,
+		CustomerName:          req.CustomerName,
+		CustomerEmail:         req.CustomerEmail,
+		CustomerPhone:         req.CustomerPhone,
+		ShippingStreetAddress: req.ShippingAddress, // For now, put full address in street field
+		ShippingCity:          "",
+		ShippingProvince:      "",
+		ShippingPostalCode:    "",
+		ShippingCountry:       "Indonesia",
+		Subtotal:              subtotal,
+		DiscountAmount:        discountAmount,
+		DiscountCodeApplied:   discountCode,
+		ShippingCost:          0, // Implement shipping cost calculation if needed
+		TotalAmount:           subtotal - discountAmount,
+		Currency:              "IDR",
+		OrderStatus:           "pending",
+		SourceChannel:         "web",
+		Notes:                 req.Notes,
+		CreatedAt:             time.Now(),
+		UpdatedAt:             time.Now(),
 	}
 
 	// Create order items
@@ -62,8 +68,7 @@ func (s *PaymentService) CreateOrder(req request.CreateOrderRequest) (*response.
 			OrderID:          orderID,
 			ProductVariantID: cartItem.ProductVariantID,
 			Quantity:         cartItem.Quantity,
-			UnitPrice:        cartItem.ProductVariant.Price,
-			Subtotal:         float64(cartItem.Quantity) * cartItem.ProductVariant.Price,
+			PriceAtPurchase:  cartItem.ProductVariant.Price,
 			CreatedAt:        time.Now(),
 			UpdatedAt:        time.Now(),
 		}
@@ -78,39 +83,32 @@ func (s *PaymentService) CreateOrder(req request.CreateOrderRequest) (*response.
 	// Prepare response
 	itemResponses := make([]response.OrderItemResponse, 0)
 	for _, item := range orderItems {
-		variant, err := s.cartRepo.GetProductVariantByID(item.ProductVariantID)
-		if err != nil {
-			return nil, fmt.Errorf("failed to get product variant: %v", err)
-		}
-
 		itemResponses = append(itemResponses, response.OrderItemResponse{
 			ID:               item.ID,
 			ProductVariantID: item.ProductVariantID,
-			VariantName:      variant.Name,
 			Quantity:         item.Quantity,
-			UnitPrice:        item.UnitPrice,
-			Subtotal:         item.Subtotal,
-			ImageURL:         variant.ImageURL,
-			Attributes:       variant.AttributeValues,
+			PriceAtPurchase:  item.PriceAtPurchase,
 		})
 	}
 
 	orderResponse := &response.OrderResponse{
-		ID:              order.ID,
-		CartID:          order.CartID,
-		CustomerName:    order.CustomerName,
-		CustomerEmail:   order.CustomerEmail,
-		CustomerPhone:   order.CustomerPhone,
-		ShippingAddress: order.ShippingAddress,
-		Subtotal:        order.Subtotal,
-		DiscountAmount:  order.DiscountAmount,
-		DiscountCode:    order.DiscountCode,
-		ShippingCost:    order.ShippingCost,
-		TotalAmount:     order.TotalAmount,
-		OrderStatus:     order.OrderStatus,
-		Notes:           order.Notes,
-		Items:           itemResponses,
-		CreatedAt:       order.CreatedAt,
+		ID:                 order.ID,
+		CartID:             order.CartID,
+		CustomerName:       order.CustomerName,
+		CustomerEmail:      order.CustomerEmail,
+		CustomerPhone:      order.CustomerPhone,
+		ShippingAddress:    order.ShippingStreetAddress,
+		Subtotal:           order.Subtotal,
+		DiscountAmount:     order.DiscountAmount,
+		DiscountCodeApplied: order.DiscountCodeApplied,
+		ShippingCost:       order.ShippingCost,
+		TotalAmount:        order.TotalAmount,
+		Currency:           order.Currency,
+		OrderStatus:        order.OrderStatus,
+		SourceChannel:      order.SourceChannel,
+		Notes:              order.Notes,
+		OrderItems:         itemResponses,
+		CreatedAt:          order.CreatedAt,
 	}
 
 	return orderResponse, nil
@@ -129,31 +127,29 @@ func (s *PaymentService) GetOrder(orderID string) (*response.OrderResponse, erro
 		itemResponses = append(itemResponses, response.OrderItemResponse{
 			ID:               item.ID,
 			ProductVariantID: item.ProductVariantID,
-			VariantName:      item.ProductVariant.Name,
 			Quantity:         item.Quantity,
-			UnitPrice:        item.UnitPrice,
-			Subtotal:         item.Subtotal,
-			ImageURL:         item.ProductVariant.ImageURL,
-			Attributes:       item.ProductVariant.AttributeValues,
+			PriceAtPurchase:  item.PriceAtPurchase,
 		})
 	}
 
 	orderResponse := &response.OrderResponse{
-		ID:              order.ID,
-		CartID:          order.CartID,
-		CustomerName:    order.CustomerName,
-		CustomerEmail:   order.CustomerEmail,
-		CustomerPhone:   order.CustomerPhone,
-		ShippingAddress: order.ShippingAddress,
-		Subtotal:        order.Subtotal,
-		DiscountAmount:  order.DiscountAmount,
-		DiscountCode:    order.DiscountCode,
-		ShippingCost:    order.ShippingCost,
-		TotalAmount:     order.TotalAmount,
-		OrderStatus:     order.OrderStatus,
-		Notes:           order.Notes,
-		Items:           itemResponses,
-		CreatedAt:       order.CreatedAt,
+		ID:                 order.ID,
+		CartID:             order.CartID,
+		CustomerName:       order.CustomerName,
+		CustomerEmail:      order.CustomerEmail,
+		CustomerPhone:      order.CustomerPhone,
+		ShippingAddress:    order.ShippingStreetAddress,
+		Subtotal:           order.Subtotal,
+		DiscountAmount:     order.DiscountAmount,
+		DiscountCodeApplied: order.DiscountCodeApplied,
+		ShippingCost:       order.ShippingCost,
+		TotalAmount:        order.TotalAmount,
+		Currency:           order.Currency,
+		OrderStatus:        order.OrderStatus,
+		SourceChannel:      order.SourceChannel,
+		Notes:              order.Notes,
+		OrderItems:         itemResponses,
+		CreatedAt:          order.CreatedAt,
 	}
 
 	return orderResponse, nil
@@ -196,7 +192,7 @@ func (s *PaymentService) CreatePayment(orderID string) (*response.PaymentRespons
 			Email: order.CustomerEmail,
 			Phone: order.CustomerPhone,
 			ShipAddr: &midtrans.CustomerAddress{
-				Address: order.ShippingAddress,
+				Address: order.ShippingStreetAddress,
 			},
 		},
 		EnabledPayments: []snap.SnapPaymentType{

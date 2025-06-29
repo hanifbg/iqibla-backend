@@ -53,13 +53,6 @@ func TestPaymentService_CreateOrder(t *testing.T) {
 
 		mockCartRepo.EXPECT().GetCartWithItems("cart-123").Return(cart, nil)
 		mockPaymentRepo.EXPECT().CreateOrderWithItems(gomock.Any(), gomock.Any()).Return(nil)
-		// Mock GetProductVariantByID calls for response preparation
-		mockCartRepo.EXPECT().GetProductVariantByID("variant-1").Return(&entity.ProductVariant{
-			ID: "variant-1", Name: "Test Product 1", Price: 200.0, ImageURL: "image1.jpg",
-		}, nil)
-		mockCartRepo.EXPECT().GetProductVariantByID("variant-2").Return(&entity.ProductVariant{
-			ID: "variant-2", Name: "Test Product 2", Price: 50.0, ImageURL: "image2.jpg",
-		}, nil)
 
 		// Act
 		result, err := service.CreateOrder(req)
@@ -72,7 +65,7 @@ func TestPaymentService_CreateOrder(t *testing.T) {
 		assert.Equal(t, 250.0, result.Subtotal)
 		assert.Equal(t, 250.0, result.TotalAmount)
 		assert.Equal(t, "pending", result.OrderStatus)
-		assert.Len(t, result.Items, 2)
+		assert.Len(t, result.OrderItems, 2)
 
 
 	})
@@ -198,8 +191,7 @@ func TestPaymentService_GetOrder(t *testing.T) {
 				OrderID:          "order-123",
 				ProductVariantID: "variant-1",
 				Quantity:         2,
-				UnitPrice:        100.0,
-				Subtotal:         200.0,
+				PriceAtPurchase:  100.0,
 				ProductVariant: &entity.ProductVariant{
 					ID:    "variant-1",
 					Name:  "Test Product",
@@ -218,7 +210,7 @@ func TestPaymentService_GetOrder(t *testing.T) {
 		assert.NotNil(t, result)
 		assert.Equal(t, "order-123", result.ID)
 		assert.Equal(t, "John Doe", result.CustomerName)
-		assert.Len(t, result.Items, 1)
+		assert.Len(t, result.OrderItems, 1)
 	})
 
 	t.Run("Error - Order not found", func(t *testing.T) {
@@ -819,6 +811,323 @@ func TestPaymentService_HandlePaymentNotification(t *testing.T) {
 		assert.Contains(t, err.Error(), "unknown transaction status")
 	})
 
+	t.Run("Success - Handle gopay notification", func(t *testing.T) {
+		// Arrange
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		mockPaymentRepo := mocks.NewMockPaymentRepository(ctrl)
+		mockCartRepo := mocks.NewMockCartRepository(ctrl)
+		mockSnapClient := mocks.NewMockSnapClientInterface(ctrl)
+		service := createTestPaymentService(mockPaymentRepo, mockCartRepo, mockSnapClient)
+
+		payment := createTestPayment()
+		notification := request.PaymentNotificationRequest{
+			TransactionID:     "txn-123",
+			OrderID:           "order-123",
+			TransactionStatus: "settlement",
+			PaymentType:       "gopay",
+			TransactionTime:   "2023-01-01 12:00:00",
+		}
+
+		mockPaymentRepo.EXPECT().FindPaymentByOrderID("order-123").Return(payment, nil)
+		mockPaymentRepo.EXPECT().UpdatePaymentAndOrderStatus(gomock.Any(), "order-123", "processing").Return(nil)
+
+		// Act
+		err := service.HandlePaymentNotification(notification)
+
+		// Assert
+		assert.NoError(t, err)
+	})
+
+	t.Run("Success - Handle qris notification", func(t *testing.T) {
+		// Arrange
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		mockPaymentRepo := mocks.NewMockPaymentRepository(ctrl)
+		mockCartRepo := mocks.NewMockCartRepository(ctrl)
+		mockSnapClient := mocks.NewMockSnapClientInterface(ctrl)
+		service := createTestPaymentService(mockPaymentRepo, mockCartRepo, mockSnapClient)
+
+		payment := createTestPayment()
+		notification := request.PaymentNotificationRequest{
+			TransactionID:     "txn-123",
+			OrderID:           "order-123",
+			TransactionStatus: "settlement",
+			PaymentType:       "qris",
+			TransactionTime:   "2023-01-01 12:00:00",
+		}
+
+		mockPaymentRepo.EXPECT().FindPaymentByOrderID("order-123").Return(payment, nil)
+		mockPaymentRepo.EXPECT().UpdatePaymentAndOrderStatus(gomock.Any(), "order-123", "processing").Return(nil)
+
+		// Act
+		err := service.HandlePaymentNotification(notification)
+
+		// Assert
+		assert.NoError(t, err)
+	})
+
+	t.Run("Success - Handle cstore notification", func(t *testing.T) {
+		// Arrange
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		mockPaymentRepo := mocks.NewMockPaymentRepository(ctrl)
+		mockCartRepo := mocks.NewMockCartRepository(ctrl)
+		mockSnapClient := mocks.NewMockSnapClientInterface(ctrl)
+		service := createTestPaymentService(mockPaymentRepo, mockCartRepo, mockSnapClient)
+
+		payment := createTestPayment()
+		notification := request.PaymentNotificationRequest{
+			TransactionID:     "txn-123",
+			OrderID:           "order-123",
+			TransactionStatus: "settlement",
+			PaymentType:       "cstore",
+			TransactionTime:   "2023-01-01 12:00:00",
+		}
+
+		mockPaymentRepo.EXPECT().FindPaymentByOrderID("order-123").Return(payment, nil)
+		mockPaymentRepo.EXPECT().UpdatePaymentAndOrderStatus(gomock.Any(), "order-123", "processing").Return(nil)
+
+		// Act
+		err := service.HandlePaymentNotification(notification)
+
+		// Assert
+		assert.NoError(t, err)
+	})
+
+	t.Run("Error - Missing transaction status", func(t *testing.T) {
+		// Arrange
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		mockPaymentRepo := mocks.NewMockPaymentRepository(ctrl)
+		mockCartRepo := mocks.NewMockCartRepository(ctrl)
+		mockSnapClient := mocks.NewMockSnapClientInterface(ctrl)
+		service := createTestPaymentService(mockPaymentRepo, mockCartRepo, mockSnapClient)
+
+		payment := createTestPayment()
+		notification := request.PaymentNotificationRequest{
+			TransactionID:     "txn-123",
+			OrderID:           "order-123",
+			TransactionStatus: "",
+			PaymentType:       "credit_card",
+		}
+
+		mockPaymentRepo.EXPECT().FindPaymentByOrderID("order-123").Return(payment, nil)
+
+		// Act
+		err := service.HandlePaymentNotification(notification)
+
+		// Assert
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "invalid transaction_status")
+	})
+
+	t.Run("Error - Missing payment type", func(t *testing.T) {
+		// Arrange
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		mockPaymentRepo := mocks.NewMockPaymentRepository(ctrl)
+		mockCartRepo := mocks.NewMockCartRepository(ctrl)
+		mockSnapClient := mocks.NewMockSnapClientInterface(ctrl)
+		service := createTestPaymentService(mockPaymentRepo, mockCartRepo, mockSnapClient)
+
+		payment := createTestPayment()
+		notification := request.PaymentNotificationRequest{
+			TransactionID:     "txn-123",
+			OrderID:           "order-123",
+			TransactionStatus: "settlement",
+			PaymentType:       "",
+		}
+
+		mockPaymentRepo.EXPECT().FindPaymentByOrderID("order-123").Return(payment, nil)
+
+		// Act
+		err := service.HandlePaymentNotification(notification)
+
+		// Assert
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "invalid payment_type")
+	})
+
+	t.Run("Success - Handle notification with invalid transaction time", func(t *testing.T) {
+		// Arrange
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		mockPaymentRepo := mocks.NewMockPaymentRepository(ctrl)
+		mockCartRepo := mocks.NewMockCartRepository(ctrl)
+		mockSnapClient := mocks.NewMockSnapClientInterface(ctrl)
+		service := createTestPaymentService(mockPaymentRepo, mockCartRepo, mockSnapClient)
+
+		payment := createTestPayment()
+		notification := request.PaymentNotificationRequest{
+			TransactionID:     "txn-123",
+			OrderID:           "order-123",
+			TransactionStatus: "settlement",
+			PaymentType:       "credit_card",
+			TransactionTime:   "invalid-time-format",
+		}
+
+		mockPaymentRepo.EXPECT().FindPaymentByOrderID("order-123").Return(payment, nil)
+		mockPaymentRepo.EXPECT().UpdatePaymentAndOrderStatus(gomock.Any(), "order-123", "processing").Return(nil)
+
+		// Act
+		err := service.HandlePaymentNotification(notification)
+
+		// Assert
+		assert.NoError(t, err) // Should still succeed even with invalid time format
+	})
+
+	t.Run("Success - Handle refund notification", func(t *testing.T) {
+		// Arrange
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		mockPaymentRepo := mocks.NewMockPaymentRepository(ctrl)
+		mockCartRepo := mocks.NewMockCartRepository(ctrl)
+		mockSnapClient := mocks.NewMockSnapClientInterface(ctrl)
+		service := createTestPaymentService(mockPaymentRepo, mockCartRepo, mockSnapClient)
+
+		payment := createTestPayment()
+		notification := request.PaymentNotificationRequest{
+			TransactionID:     "txn-123",
+			OrderID:           "order-123",
+			TransactionStatus: "refund",
+			PaymentType:       "credit_card",
+			TransactionTime:   "2023-01-01 12:00:00",
+		}
+
+		mockPaymentRepo.EXPECT().FindPaymentByOrderID("order-123").Return(payment, nil)
+		mockPaymentRepo.EXPECT().UpdatePaymentAndOrderStatus(gomock.Any(), "order-123", "refunded").Return(nil)
+
+		// Act
+		err := service.HandlePaymentNotification(notification)
+
+		// Assert
+		assert.NoError(t, err)
+	})
+
+	t.Run("Success - Handle capture notification", func(t *testing.T) {
+		// Arrange
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		mockPaymentRepo := mocks.NewMockPaymentRepository(ctrl)
+		mockCartRepo := mocks.NewMockCartRepository(ctrl)
+		mockSnapClient := mocks.NewMockSnapClientInterface(ctrl)
+		service := createTestPaymentService(mockPaymentRepo, mockCartRepo, mockSnapClient)
+
+		payment := createTestPayment()
+		notification := request.PaymentNotificationRequest{
+			TransactionID:     "txn-123",
+			OrderID:           "order-123",
+			TransactionStatus: "capture",
+			PaymentType:       "credit_card",
+			TransactionTime:   "2023-01-01 12:00:00",
+		}
+
+		mockPaymentRepo.EXPECT().FindPaymentByOrderID("order-123").Return(payment, nil)
+		mockPaymentRepo.EXPECT().UpdatePaymentAndOrderStatus(gomock.Any(), "order-123", "processing").Return(nil)
+
+		// Act
+		err := service.HandlePaymentNotification(notification)
+
+		// Assert
+		assert.NoError(t, err)
+	})
+
+	t.Run("Success - Handle expire notification", func(t *testing.T) {
+		// Arrange
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		mockPaymentRepo := mocks.NewMockPaymentRepository(ctrl)
+		mockCartRepo := mocks.NewMockCartRepository(ctrl)
+		mockSnapClient := mocks.NewMockSnapClientInterface(ctrl)
+		service := createTestPaymentService(mockPaymentRepo, mockCartRepo, mockSnapClient)
+
+		payment := createTestPayment()
+		notification := request.PaymentNotificationRequest{
+			TransactionID:     "txn-123",
+			OrderID:           "order-123",
+			TransactionStatus: "expire",
+			PaymentType:       "credit_card",
+			TransactionTime:   "2023-01-01 12:00:00",
+		}
+
+		mockPaymentRepo.EXPECT().FindPaymentByOrderID("order-123").Return(payment, nil)
+		mockPaymentRepo.EXPECT().UpdatePaymentAndOrderStatus(gomock.Any(), "order-123", "cancelled").Return(nil)
+
+		// Act
+		err := service.HandlePaymentNotification(notification)
+
+		// Assert
+		assert.NoError(t, err)
+	})
+
+	t.Run("Success - Handle cancel notification", func(t *testing.T) {
+		// Arrange
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		mockPaymentRepo := mocks.NewMockPaymentRepository(ctrl)
+		mockCartRepo := mocks.NewMockCartRepository(ctrl)
+		mockSnapClient := mocks.NewMockSnapClientInterface(ctrl)
+		service := createTestPaymentService(mockPaymentRepo, mockCartRepo, mockSnapClient)
+
+		payment := createTestPayment()
+		notification := request.PaymentNotificationRequest{
+			TransactionID:     "txn-123",
+			OrderID:           "order-123",
+			TransactionStatus: "cancel",
+			PaymentType:       "credit_card",
+			TransactionTime:   "2023-01-01 12:00:00",
+		}
+
+		mockPaymentRepo.EXPECT().FindPaymentByOrderID("order-123").Return(payment, nil)
+		mockPaymentRepo.EXPECT().UpdatePaymentAndOrderStatus(gomock.Any(), "order-123", "cancelled").Return(nil)
+
+		// Act
+		err := service.HandlePaymentNotification(notification)
+
+		// Assert
+		assert.NoError(t, err)
+	})
+
+	t.Run("Success - Handle shopeepay notification", func(t *testing.T) {
+		// Arrange
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		mockPaymentRepo := mocks.NewMockPaymentRepository(ctrl)
+		mockCartRepo := mocks.NewMockCartRepository(ctrl)
+		mockSnapClient := mocks.NewMockSnapClientInterface(ctrl)
+		service := createTestPaymentService(mockPaymentRepo, mockCartRepo, mockSnapClient)
+
+		payment := createTestPayment()
+		notification := request.PaymentNotificationRequest{
+			TransactionID:     "txn-123",
+			OrderID:           "order-123",
+			TransactionStatus: "settlement",
+			PaymentType:       "shopeepay",
+			TransactionTime:   "2023-01-01 12:00:00",
+		}
+
+		mockPaymentRepo.EXPECT().FindPaymentByOrderID("order-123").Return(payment, nil)
+		mockPaymentRepo.EXPECT().UpdatePaymentAndOrderStatus(gomock.Any(), "order-123", "processing").Return(nil)
+
+		// Act
+		err := service.HandlePaymentNotification(notification)
+
+		// Assert
+		assert.NoError(t, err)
+	})
+
 	t.Run("Error - Failed to update payment", func(t *testing.T) {
 		// Arrange
 		ctrl := gomock.NewController(t)
@@ -883,19 +1192,25 @@ func createTestCartWithItems() *entity.Cart {
 // Helper function to create test order
 func createTestOrder() *entity.Order {
 	return &entity.Order{
-		ID:              "order-123",
-		CartID:          "cart-123",
-		CustomerName:    "John Doe",
-		CustomerEmail:   "john@example.com",
-		CustomerPhone:   "+1234567890",
-		ShippingAddress: "123 Test St",
-		Subtotal:        250.0,
-		DiscountAmount:  0.0,
-		ShippingCost:    0.0,
-		TotalAmount:     250.0,
-		OrderStatus:     "pending",
-		CreatedAt:       time.Now(),
-		UpdatedAt:       time.Now(),
+		ID:                    "order-123",
+		CartID:                "cart-123",
+		CustomerName:          "John Doe",
+		CustomerEmail:         "john@example.com",
+		CustomerPhone:         "+1234567890",
+		ShippingStreetAddress: "123 Test St",
+		ShippingCity:          "",
+		ShippingProvince:      "",
+		ShippingPostalCode:    "",
+		ShippingCountry:       "Indonesia",
+		Subtotal:              250.0,
+		DiscountAmount:        0.0,
+		ShippingCost:          0.0,
+		TotalAmount:           250.0,
+		Currency:              "IDR",
+		OrderStatus:           "pending",
+		SourceChannel:         "web",
+		CreatedAt:             time.Now(),
+		UpdatedAt:             time.Now(),
 	}
 }
 
@@ -981,6 +1296,68 @@ func TestNewPaymentServiceWithMidtrans(t *testing.T) {
 
 // Additional error handling tests
 func TestPaymentService_CreateOrder_ErrorCases(t *testing.T) {
+	t.Run("Error - Empty cart", func(t *testing.T) {
+		// Arrange
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		mockPaymentRepo := mocks.NewMockPaymentRepository(ctrl)
+		mockCartRepo := mocks.NewMockCartRepository(ctrl)
+		mockSnapClient := mocks.NewMockSnapClientInterface(ctrl)
+		service := createTestPaymentService(mockPaymentRepo, mockCartRepo, mockSnapClient)
+
+		emptyCart := &entity.Cart{
+			ID:        "cart-123",
+			CartItems: []entity.CartItem{}, // Empty cart
+		}
+		req := request.CreateOrderRequest{
+			CartID:          "cart-123",
+			CustomerName:    "John Doe",
+			CustomerEmail:   "john@example.com",
+			CustomerPhone:   "+1234567890",
+			ShippingAddress: "123 Test St",
+		}
+
+		mockCartRepo.EXPECT().GetCartWithItems("cart-123").Return(emptyCart, nil)
+
+		// Act
+		result, err := service.CreateOrder(req)
+
+		// Assert
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		assert.Contains(t, err.Error(), "cart is empty")
+	})
+
+	t.Run("Error - Cart not found", func(t *testing.T) {
+		// Arrange
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		mockPaymentRepo := mocks.NewMockPaymentRepository(ctrl)
+		mockCartRepo := mocks.NewMockCartRepository(ctrl)
+		mockSnapClient := mocks.NewMockSnapClientInterface(ctrl)
+		service := createTestPaymentService(mockPaymentRepo, mockCartRepo, mockSnapClient)
+
+		req := request.CreateOrderRequest{
+			CartID:          "cart-123",
+			CustomerName:    "John Doe",
+			CustomerEmail:   "john@example.com",
+			CustomerPhone:   "+1234567890",
+			ShippingAddress: "123 Test St",
+		}
+
+		mockCartRepo.EXPECT().GetCartWithItems("cart-123").Return(nil, errors.New("cart not found"))
+
+		// Act
+		result, err := service.CreateOrder(req)
+
+		// Assert
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		assert.Contains(t, err.Error(), "failed to get cart")
+	})
+
 	t.Run("Error - Database failure during order creation", func(t *testing.T) {
 		// Arrange
 		ctrl := gomock.NewController(t)
@@ -1039,6 +1416,84 @@ func TestPaymentService_CreatePayment_ErrorCases(t *testing.T) {
 		assert.Error(t, err)
 		assert.Nil(t, result)
 		assert.Contains(t, err.Error(), "failed to create Midtrans transaction")
+	})
+
+	t.Run("Error - Midtrans response is nil", func(t *testing.T) {
+		// Arrange
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		mockPaymentRepo := mocks.NewMockPaymentRepository(ctrl)
+		mockCartRepo := mocks.NewMockCartRepository(ctrl)
+		mockSnapClient := mocks.NewMockSnapClientInterface(ctrl)
+		service := createTestPaymentService(mockPaymentRepo, mockCartRepo, mockSnapClient)
+
+		order := createTestOrder()
+		mockPaymentRepo.EXPECT().FindOrderByID("order-123").Return(order, nil)
+		mockPaymentRepo.EXPECT().FindPaymentByOrderID("order-123").Return(nil, errors.New("payment not found"))
+		mockSnapClient.EXPECT().CreateTransaction(gomock.Any()).Return(nil, nil)
+
+		// Act
+		result, err := service.CreatePayment("order-123")
+
+		// Assert
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		assert.Contains(t, err.Error(), "response is nil")
+	})
+
+	t.Run("Error - Empty token in Midtrans response", func(t *testing.T) {
+		// Arrange
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		mockPaymentRepo := mocks.NewMockPaymentRepository(ctrl)
+		mockCartRepo := mocks.NewMockCartRepository(ctrl)
+		mockSnapClient := mocks.NewMockSnapClientInterface(ctrl)
+		service := createTestPaymentService(mockPaymentRepo, mockCartRepo, mockSnapClient)
+
+		order := createTestOrder()
+		mockPaymentRepo.EXPECT().FindOrderByID("order-123").Return(order, nil)
+		mockPaymentRepo.EXPECT().FindPaymentByOrderID("order-123").Return(nil, errors.New("payment not found"))
+		mockSnapClient.EXPECT().CreateTransaction(gomock.Any()).Return(&snap.Response{
+			Token:       "",
+			RedirectURL: "https://app.sandbox.midtrans.com/snap/v2/vtweb/test-token",
+		}, nil)
+
+		// Act
+		result, err := service.CreatePayment("order-123")
+
+		// Assert
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		assert.Contains(t, err.Error(), "token is empty")
+	})
+
+	t.Run("Error - Empty redirect URL in Midtrans response", func(t *testing.T) {
+		// Arrange
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		mockPaymentRepo := mocks.NewMockPaymentRepository(ctrl)
+		mockCartRepo := mocks.NewMockCartRepository(ctrl)
+		mockSnapClient := mocks.NewMockSnapClientInterface(ctrl)
+		service := createTestPaymentService(mockPaymentRepo, mockCartRepo, mockSnapClient)
+
+		order := createTestOrder()
+		mockPaymentRepo.EXPECT().FindOrderByID("order-123").Return(order, nil)
+		mockPaymentRepo.EXPECT().FindPaymentByOrderID("order-123").Return(nil, errors.New("payment not found"))
+		mockSnapClient.EXPECT().CreateTransaction(gomock.Any()).Return(&snap.Response{
+			Token:       "test-token",
+			RedirectURL: "",
+		}, nil)
+
+		// Act
+		result, err := service.CreatePayment("order-123")
+
+		// Assert
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		assert.Contains(t, err.Error(), "redirect URL is empty")
 	})
 
 	t.Run("Error - Database failure during payment creation", func(t *testing.T) {
