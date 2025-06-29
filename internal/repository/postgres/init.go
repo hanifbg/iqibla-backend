@@ -21,7 +21,7 @@ func Init(config *config.AppConfig) (*RepoDatabase, error) {
 	}
 
 	repo.DB = db
-	//migration
+	// // Run database migrations
 	// if err := repo.MigrateDB(); err != nil {
 	// 	log.Fatalf("Failed to run database migrations: %v", err)
 	// }
@@ -62,5 +62,8 @@ func (repo *RepoDatabase) MigrateDB() error {
 		&entity.Cart{},
 		&entity.CartItem{},
 		&entity.Discount{},
+		&entity.Order{},
+		&entity.OrderItem{},
+		&entity.Payment{},
 	)
 }

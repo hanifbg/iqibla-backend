@@ -4,3 +4,6 @@ app.config.json
 vendor
 app.yaml
 .gcloudignore
+coverage.html
+coverage.out
+*.exe

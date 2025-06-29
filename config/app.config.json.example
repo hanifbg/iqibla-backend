@@ -11,5 +11,11 @@
         "dbname": "iqibla_ecommerce",
         "sslmode": "disable"
     },
+    "payment": {
+        "midtrans_server_key": "your_midtrans_server_key",
+        "midtrans_client_key": "your_midtrans_client_key",
+        "is_production": false
+    },
+    "base_url": "http://localhost:8080",
     "http_timeout": 30
 }
