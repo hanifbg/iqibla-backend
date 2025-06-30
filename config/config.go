@@ -68,6 +68,8 @@ func initConfig() (*AppConfig, error) {
 		finalConfig.MidtransServerKey = getEnvOrDefault("MIDTRANS_SERVER_KEY", "")
 		finalConfig.MidtransClientKey = getEnvOrDefault("MIDTRANS_CLIENT_KEY", "")
 		finalConfig.IsProduction = getEnvBoolOrDefault("IS_PRODUCTION", false)
+		finalConfig.RajaOngkirAPIKey = getEnvOrDefault("RAJAONGKIR_API_KEY", "")
+		finalConfig.RajaOngkirBaseURL = getEnvOrDefault("RAJAONGKIR_BASE_URL", "")
 		return &finalConfig, nil
 	}
 
