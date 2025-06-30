@@ -1,17 +1,25 @@
 package shipping
 
 import (
-	"github.com/hanifbg/landing_backend/internal/handler"
 	"github.com/hanifbg/landing_backend/internal/service"
+	"github.com/hanifbg/landing_backend/internal/service/util"
 	"github.com/labstack/echo/v4"
 )
 
-func RegisterRoutes(e *echo.Echo, shippingService service.ShippingService) {
-	shippingHandler := handler.NewShippingHandler(shippingService)
+type ApiWrapper struct {
+	shippingService service.ShippingService
+}
 
-	// Shipping routes
+func InitRoute(e *echo.Echo, servWrapper *util.ServiceWrapper) {
+	api := ApiWrapper{
+		shippingService: servWrapper.ShippingService,
+	}
+	api.registerRouter(e)
+}
+
+func (h *ApiWrapper) registerRouter(e *echo.Echo) {
 	shippingGroup := e.Group("/api/v1/shipping")
-	shippingGroup.GET("/provinces", shippingHandler.GetProvinces)
-	shippingGroup.GET("/cities", shippingHandler.GetCities)
-	shippingGroup.POST("/cost", shippingHandler.CalculateShippingCost)
+	shippingGroup.GET("/provinces", h.GetProvinces)
+	shippingGroup.GET("/cities", h.GetCities)
+	shippingGroup.POST("/cost", h.CalculateShippingCost)
 }

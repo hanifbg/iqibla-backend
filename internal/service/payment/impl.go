@@ -46,6 +46,8 @@ func (s *PaymentService) CreateOrder(req request.CreateOrderRequest) (*response.
 		ShippingCity:          req.ShippingCityID,
 		ShippingProvince:      req.ShippingProvinceID,
 		ShippingPostalCode:    req.ShippingPostalCode,
+		ShippingCourier:       req.ShippingCourier,
+		ShippingService:       req.ShippingService,
 		ShippingCountry:       "Indonesia",
 		Subtotal:              subtotal,
 		DiscountAmount:        discountAmount,
@@ -92,23 +94,23 @@ func (s *PaymentService) CreateOrder(req request.CreateOrderRequest) (*response.
 	}
 
 	orderResponse := &response.OrderResponse{
-		ID:                 order.ID,
-		CartID:             order.CartID,
-		CustomerName:       order.CustomerName,
-		CustomerEmail:      order.CustomerEmail,
-		CustomerPhone:      order.CustomerPhone,
-		ShippingAddress:    order.ShippingStreetAddress,
-		Subtotal:           order.Subtotal,
-		DiscountAmount:     order.DiscountAmount,
+		ID:                  order.ID,
+		CartID:              order.CartID,
+		CustomerName:        order.CustomerName,
+		CustomerEmail:       order.CustomerEmail,
+		CustomerPhone:       order.CustomerPhone,
+		ShippingAddress:     order.ShippingStreetAddress,
+		Subtotal:            order.Subtotal,
+		DiscountAmount:      order.DiscountAmount,
 		DiscountCodeApplied: order.DiscountCodeApplied,
-		ShippingCost:       order.ShippingCost,
-		TotalAmount:        order.TotalAmount,
-		Currency:           order.Currency,
-		OrderStatus:        order.OrderStatus,
-		SourceChannel:      order.SourceChannel,
-		Notes:              order.Notes,
-		OrderItems:         itemResponses,
-		CreatedAt:          order.CreatedAt,
+		ShippingCost:        order.ShippingCost,
+		TotalAmount:         order.TotalAmount,
+		Currency:            order.Currency,
+		OrderStatus:         order.OrderStatus,
+		SourceChannel:       order.SourceChannel,
+		Notes:               order.Notes,
+		OrderItems:          itemResponses,
+		CreatedAt:           order.CreatedAt,
 	}
 
 	return orderResponse, nil
@@ -133,23 +135,23 @@ func (s *PaymentService) GetOrder(orderID string) (*response.OrderResponse, erro
 	}
 
 	orderResponse := &response.OrderResponse{
-		ID:                 order.ID,
-		CartID:             order.CartID,
-		CustomerName:       order.CustomerName,
-		CustomerEmail:      order.CustomerEmail,
-		CustomerPhone:      order.CustomerPhone,
-		ShippingAddress:    order.ShippingStreetAddress,
-		Subtotal:           order.Subtotal,
-		DiscountAmount:     order.DiscountAmount,
+		ID:                  order.ID,
+		CartID:              order.CartID,
+		CustomerName:        order.CustomerName,
+		CustomerEmail:       order.CustomerEmail,
+		CustomerPhone:       order.CustomerPhone,
+		ShippingAddress:     order.ShippingStreetAddress,
+		Subtotal:            order.Subtotal,
+		DiscountAmount:      order.DiscountAmount,
 		DiscountCodeApplied: order.DiscountCodeApplied,
-		ShippingCost:       order.ShippingCost,
-		TotalAmount:        order.TotalAmount,
-		Currency:           order.Currency,
-		OrderStatus:        order.OrderStatus,
-		SourceChannel:      order.SourceChannel,
-		Notes:              order.Notes,
-		OrderItems:         itemResponses,
-		CreatedAt:          order.CreatedAt,
+		ShippingCost:        order.ShippingCost,
+		TotalAmount:         order.TotalAmount,
+		Currency:            order.Currency,
+		OrderStatus:         order.OrderStatus,
+		SourceChannel:       order.SourceChannel,
+		Notes:               order.Notes,
+		OrderItems:          itemResponses,
+		CreatedAt:           order.CreatedAt,
 	}
 
 	return orderResponse, nil
@@ -216,11 +218,11 @@ func (s *PaymentService) CreatePayment(orderID string) (*response.PaymentRespons
 			return nil, fmt.Errorf("failed to create Midtrans transaction: %v", err)
 		}
 	}
-	
+
 	if respSnap == nil {
 		return nil, fmt.Errorf("failed to create Midtrans transaction: response is nil")
 	}
-	
+
 	if respSnap.Token == "" {
 		return nil, fmt.Errorf("failed to create Midtrans transaction: token is empty")
 	}
@@ -233,16 +235,16 @@ func (s *PaymentService) CreatePayment(orderID string) (*response.PaymentRespons
 
 	// Create payment record
 	payment := &entity.Payment{
-		ID:              uuid.New().String(),
-		OrderID:         orderID,
-		Amount:          order.TotalAmount,
-		Status:          entity.PaymentStatusPending,
-		PaymentToken:    respSnap.Token,
-		PaymentURL:      respSnap.RedirectURL,
-		ExpiryTime:      &expiryTime,
-		PaymentDetails:  entity.JSONMap{},
-		CreatedAt:       time.Now(),
-		UpdatedAt:       time.Now(),
+		ID:             uuid.New().String(),
+		OrderID:        orderID,
+		Amount:         order.TotalAmount,
+		Status:         entity.PaymentStatusPending,
+		PaymentToken:   respSnap.Token,
+		PaymentURL:     respSnap.RedirectURL,
+		ExpiryTime:     &expiryTime,
+		PaymentDetails: entity.JSONMap{},
+		CreatedAt:      time.Now(),
+		UpdatedAt:      time.Now(),
 	}
 
 	// Save payment to database
@@ -252,14 +254,14 @@ func (s *PaymentService) CreatePayment(orderID string) (*response.PaymentRespons
 
 	// Return payment response
 	return &response.PaymentResponse{
-		ID:            payment.ID,
-		OrderID:       payment.OrderID,
-		Amount:        payment.Amount,
-		Status:        payment.Status,
-		PaymentToken:  payment.PaymentToken,
-		PaymentURL:    payment.PaymentURL,
-		ExpiryTime:    payment.ExpiryTime,
-		CreatedAt:     payment.CreatedAt,
+		ID:           payment.ID,
+		OrderID:      payment.OrderID,
+		Amount:       payment.Amount,
+		Status:       payment.Status,
+		PaymentToken: payment.PaymentToken,
+		PaymentURL:   payment.PaymentURL,
+		ExpiryTime:   payment.ExpiryTime,
+		CreatedAt:    payment.CreatedAt,
 	}, nil
 }
 

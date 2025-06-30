@@ -22,7 +22,7 @@ func InitHandler(cfg *config.AppConfig, e *echo.Echo, servWrapper *serv.ServiceW
 	payment.RegisterRoutes(e, servWrapper.PaymentService)
 
 	// Initialize shipping routes
-	shipping.RegisterRoutes(e, servWrapper.ShippingService)
+	shipping.InitRoute(e, servWrapper)
 
 	// Init swagger
 	swagger.InitRoute(e)
