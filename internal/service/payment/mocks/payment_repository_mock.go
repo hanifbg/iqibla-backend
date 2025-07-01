@@ -17,6 +17,11 @@ type MockPaymentRepository struct {
 	recorder *MockPaymentRepositoryMockRecorder
 }
 
+// GetSeq implements repository.PaymentRepository.
+func (m *MockPaymentRepository) GetSeq() (int64, error) {
+	panic("unimplemented")
+}
+
 // MockPaymentRepositoryMockRecorder is the mock recorder for MockPaymentRepository.
 type MockPaymentRepositoryMockRecorder struct {
 	mock *MockPaymentRepository

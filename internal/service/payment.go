@@ -7,9 +7,9 @@ import (
 
 type PaymentService interface {
 	// Order operations
-	CreateOrder(req request.CreateOrderRequest) (*response.OrderResponse, error)
+	CreateOrder(req request.CreateOrderRequest) (*response.CreateOrderResponse, error)
 	GetOrder(orderID string) (*response.OrderResponse, error)
-	
+
 	// Payment operations
 	CreatePayment(orderID string) (*response.PaymentResponse, error)
 	GetPaymentStatus(paymentID string) (*response.PaymentStatusResponse, error)

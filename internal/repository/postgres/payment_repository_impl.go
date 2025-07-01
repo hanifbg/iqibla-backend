@@ -79,14 +79,14 @@ func (r *RepoDatabase) CreateOrderWithItems(order *entity.Order, items []entity.
 		if err := tx.Create(order).Error; err != nil {
 			return err
 		}
-		
+
 		// Create order items
 		for i := range items {
 			if err := tx.Create(&items[i]).Error; err != nil {
 				return err
 			}
 		}
-		
+
 		return nil
 	})
 }
@@ -97,12 +97,22 @@ func (r *RepoDatabase) UpdatePaymentAndOrderStatus(payment *entity.Payment, orde
 		if err := tx.Save(payment).Error; err != nil {
 			return err
 		}
-		
+
 		// Update order status
 		if err := tx.Model(&entity.Order{}).Where("id = ?", orderID).Update("order_status", orderStatus).Error; err != nil {
 			return err
 		}
-		
+
 		return nil
 	})
+}
+
+func (r *RepoDatabase) GetSeq() (int64, error) {
+	var nextSeq int64
+	err := r.DB.Raw("SELECT nextval('order_number_seq')").Scan(&nextSeq).Error
+	if err != nil {
+		return 0, err
+	}
+
+	return nextSeq, nil
 }

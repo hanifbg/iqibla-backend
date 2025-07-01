@@ -51,6 +51,8 @@ func (h *PaymentHandler) CreateOrder(c echo.Context) error {
 		})
 	}
 
+	order.Message = "Order created successfully"
+	c.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
 	return c.JSON(http.StatusOK, order)
 }
 

@@ -13,7 +13,7 @@ import (
 	"github.com/midtrans/midtrans-go/snap"
 )
 
-func (s *PaymentService) CreateOrder(req request.CreateOrderRequest) (*response.OrderResponse, error) {
+func (s *PaymentService) CreateOrder(req request.CreateOrderRequest) (*response.CreateOrderResponse, error) {
 	// Get cart with items
 	cart, err := s.cartRepo.GetCartWithItems(req.CartID)
 	if err != nil {
@@ -34,10 +34,18 @@ func (s *PaymentService) CreateOrder(req request.CreateOrderRequest) (*response.
 	var discountAmount float64 = 0
 	var discountCode string
 
+	//crete order number
+	nextSeq, err := s.paymentRepo.GetSeq()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get seq: %v", err)
+	}
+	orderNumber := fmt.Sprintf("IQB-%d-%05d", time.Now().Year(), nextSeq)
+
 	// Create order
 	orderID := uuid.New().String()
 	order := &entity.Order{
 		ID:                    orderID,
+		OrderNumber:           orderNumber,
 		CartID:                req.CartID,
 		CustomerName:          req.CustomerName,
 		CustomerEmail:         req.CustomerEmail,
@@ -93,24 +101,30 @@ func (s *PaymentService) CreateOrder(req request.CreateOrderRequest) (*response.
 		})
 	}
 
-	orderResponse := &response.OrderResponse{
-		ID:                  order.ID,
-		CartID:              order.CartID,
-		CustomerName:        order.CustomerName,
-		CustomerEmail:       order.CustomerEmail,
-		CustomerPhone:       order.CustomerPhone,
-		ShippingAddress:     order.ShippingStreetAddress,
-		Subtotal:            order.Subtotal,
-		DiscountAmount:      order.DiscountAmount,
-		DiscountCodeApplied: order.DiscountCodeApplied,
-		ShippingCost:        order.ShippingCost,
-		TotalAmount:         order.TotalAmount,
-		Currency:            order.Currency,
-		OrderStatus:         order.OrderStatus,
-		SourceChannel:       order.SourceChannel,
-		Notes:               order.Notes,
-		OrderItems:          itemResponses,
-		CreatedAt:           order.CreatedAt,
+	// orderResponse := &response.OrderResponse{
+	// 	ID:                  order.ID,
+	// 	CartID:              order.CartID,
+	// 	CustomerName:        order.CustomerName,
+	// 	CustomerEmail:       order.CustomerEmail,
+	// 	CustomerPhone:       order.CustomerPhone,
+	// 	ShippingAddress:     order.ShippingStreetAddress,
+	// 	Subtotal:            order.Subtotal,
+	// 	DiscountAmount:      order.DiscountAmount,
+	// 	DiscountCodeApplied: order.DiscountCodeApplied,
+	// 	ShippingCost:        order.ShippingCost,
+	// 	TotalAmount:         order.TotalAmount,
+	// 	Currency:            order.Currency,
+	// 	OrderStatus:         order.OrderStatus,
+	// 	SourceChannel:       order.SourceChannel,
+	// 	Notes:               order.Notes,
+	// 	OrderItems:          itemResponses,
+	// 	CreatedAt:           order.CreatedAt,
+	// }
+
+	orderResponse := &response.CreateOrderResponse{
+		OrderID:     order.ID,
+		OrderNumber: orderNumber,
+		TotalAmount: order.TotalAmount,
 	}
 
 	return orderResponse, nil
