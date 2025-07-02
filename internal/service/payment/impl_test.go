@@ -48,6 +48,7 @@ func TestPaymentService_CreateOrder(t *testing.T) {
 		}
 
 		mockCartRepo.EXPECT().GetCartWithItems("cart-123").Return(cart, nil)
+		mockPaymentRepo.EXPECT().GetSeq().Return(int64(1), nil)
 		mockPaymentRepo.EXPECT().CreateOrderWithItems(gomock.Any(), gomock.Any()).Return(nil)
 
 		// Act
@@ -150,6 +151,7 @@ func TestPaymentService_CreateOrder(t *testing.T) {
 		}
 
 		mockCartRepo.EXPECT().GetCartWithItems("cart-123").Return(cart, nil)
+		mockPaymentRepo.EXPECT().GetSeq().Return(int64(1), nil)
 		mockPaymentRepo.EXPECT().CreateOrderWithItems(gomock.Any(), gomock.Any()).Return(errors.New("database error"))
 
 		// Act
@@ -1369,6 +1371,7 @@ func TestPaymentService_CreateOrder_ErrorCases(t *testing.T) {
 		}
 
 		mockCartRepo.EXPECT().GetCartWithItems("cart-123").Return(cart, nil)
+		mockPaymentRepo.EXPECT().GetSeq().Return(int64(1), nil)
 		mockPaymentRepo.EXPECT().CreateOrderWithItems(gomock.Any(), gomock.Any()).Return(errors.New("database error"))
 
 		// Act

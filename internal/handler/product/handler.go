@@ -8,20 +8,36 @@ import (
 
 // GetAllProducts godoc
 // @Summary Get all active products
-// @Description Retrieves all active products with their variants
+// @Description Retrieves all active products with their variants, optionally filtered by category
 // @Tags products
 // @Accept json
 // @Produce json
+// @Param category query string false "Filter products by category"
 // @Success 200 {array} entity.Product
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/products [get]
 func (h *ApiWrapper) GetAllProducts(c echo.Context) error {
-	products, err := h.ProductService.GetAllProducts()
+	// Get the optional category query parameter
+	category := c.QueryParam("category")
+
+	// Get all products from the service
+	products, err := h.ProductService.GetAllProducts(category)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": "Failed to fetch products",
 		})
 	}
+
+	// If category is specified, filter the products
+	// if category != "" {
+	// 	filteredProducts := make([]entity.Product, 0)
+	// 	for _, product := range products {
+	// 		if product.Category == category {
+	// 			filteredProducts = append(filteredProducts, product)
+	// 		}
+	// 	}
+	// 	products = filteredProducts
+	// }
 
 	return c.JSON(http.StatusOK, products)
 }

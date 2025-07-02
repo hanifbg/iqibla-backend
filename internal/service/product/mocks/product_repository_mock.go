@@ -63,3 +63,18 @@ func (mr *MockProductRepositoryMockRecorder) GetProductByID(arg0 interface{}) *g
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProductByID", reflect.TypeOf((*MockProductRepository)(nil).GetProductByID), arg0)
 }
+
+// GetAllProductsByCategory mocks base method.
+func (m *MockProductRepository) GetAllProductsByCategory(arg0 string) ([]entity.Product, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAllProductsByCategory", arg0)
+	ret0, _ := ret[0].([]entity.Product)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAllProductsByCategory indicates an expected call of GetAllProductsByCategory.
+func (mr *MockProductRepositoryMockRecorder) GetAllProductsByCategory(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllProductsByCategory", reflect.TypeOf((*MockProductRepository)(nil).GetAllProductsByCategory), arg0)
+}

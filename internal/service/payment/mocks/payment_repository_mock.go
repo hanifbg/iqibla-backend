@@ -19,7 +19,11 @@ type MockPaymentRepository struct {
 
 // GetSeq implements repository.PaymentRepository.
 func (m *MockPaymentRepository) GetSeq() (int64, error) {
-	panic("unimplemented")
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetSeq")
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // MockPaymentRepositoryMockRecorder is the mock recorder for MockPaymentRepository.
@@ -196,6 +200,12 @@ func (m *MockPaymentRepository) UpdatePayment(payment *entity.Payment) error {
 func (mr *MockPaymentRepositoryMockRecorder) UpdatePayment(payment interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatePayment", reflect.TypeOf((*MockPaymentRepository)(nil).UpdatePayment), payment)
+}
+
+// GetSeq indicates an expected call of GetSeq.
+func (mr *MockPaymentRepositoryMockRecorder) GetSeq() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSeq", reflect.TypeOf((*MockPaymentRepository)(nil).GetSeq))
 }
 
 // UpdatePaymentAndOrderStatus mocks base method.

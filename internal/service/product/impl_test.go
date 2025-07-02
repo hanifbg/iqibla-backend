@@ -53,7 +53,7 @@ func TestProductService_GetAllProducts(t *testing.T) {
 		mockProductRepo.EXPECT().GetAllProducts().Return(expectedProducts, nil)
 
 		// Act
-		result, err := service.GetAllProducts()
+		result, err := service.GetAllProducts("") // Pass empty string for category
 
 		// Assert
 		assert.NoError(t, err)
@@ -75,7 +75,7 @@ func TestProductService_GetAllProducts(t *testing.T) {
 		mockProductRepo.EXPECT().GetAllProducts().Return(expectedProducts, nil)
 
 		// Act
-		result, err := service.GetAllProducts()
+		result, err := service.GetAllProducts("") // Pass empty string for category
 
 		// Assert
 		assert.NoError(t, err)
@@ -94,7 +94,7 @@ func TestProductService_GetAllProducts(t *testing.T) {
 		mockProductRepo.EXPECT().GetAllProducts().Return(nil, errors.New("database error"))
 
 		// Act
-		result, err := service.GetAllProducts()
+		result, err := service.GetAllProducts("") // Pass empty string for category
 
 		// Assert
 		assert.Error(t, err)
