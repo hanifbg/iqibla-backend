@@ -143,6 +143,8 @@ func (s *PaymentService) GetOrder(orderID string) (*response.OrderResponse, erro
 		itemResponses = append(itemResponses, response.OrderItemResponse{
 			ID:               item.ID,
 			ProductVariantID: item.ProductVariantID,
+			ProductName:      item.ProductVariant.Name,
+			ProductImage:     item.ProductVariant.ImageURL,
 			Quantity:         item.Quantity,
 			PriceAtPurchase:  item.PriceAtPurchase,
 		})
@@ -150,11 +152,15 @@ func (s *PaymentService) GetOrder(orderID string) (*response.OrderResponse, erro
 
 	orderResponse := &response.OrderResponse{
 		ID:                  order.ID,
+		OrderNumber:         order.OrderNumber,
 		CartID:              order.CartID,
 		CustomerName:        order.CustomerName,
 		CustomerEmail:       order.CustomerEmail,
 		CustomerPhone:       order.CustomerPhone,
 		ShippingAddress:     order.ShippingStreetAddress,
+		ShippingCityID:      order.ShippingCity,
+		ShippingProvinceID:  order.ShippingProvince,
+		ShippingPostalCode:  order.ShippingPostalCode,
 		Subtotal:            order.Subtotal,
 		DiscountAmount:      order.DiscountAmount,
 		DiscountCodeApplied: order.DiscountCodeApplied,

@@ -9,6 +9,8 @@ import (
 type OrderItemResponse struct {
 	ID               string  `json:"id"`
 	ProductVariantID string  `json:"product_variant_id"`
+	ProductName      string  `json:"product_name"`
+	ProductImage     string  `json:"product_image"`
 	Quantity         int     `json:"quantity"`
 	PriceAtPurchase  float64 `json:"price_at_purchase"`
 }
@@ -28,6 +30,9 @@ type OrderResponse struct {
 	CustomerEmail               string              `json:"customer_email"`
 	CustomerPhone               string              `json:"customer_phone"`
 	ShippingAddress             string              `json:"shipping_address"`
+	ShippingCityID              string              `json:"shipping_city_id"`
+	ShippingProvinceID          string              `json:"shipping_province_id"`
+	ShippingPostalCode          string              `json:"shipping_postal_code"`
 	Subtotal                    float64             `json:"subtotal"`
 	DiscountAmount              float64             `json:"discount_amount"`
 	DiscountCodeApplied         string              `json:"discount_code_applied,omitempty"`

@@ -1,0 +1,210 @@
+@startuml
+!theme mars
+
+title iQibla E-commerce Database ERD (Revised)
+
+entity products {
+  * id : UUID
+  --
+  name : VARCHAR(255)
+  description : TEXT
+  category : VARCHAR(100)
+  brand : VARCHAR(100)
+  image_urls : JSONB ARRAY
+  features : JSONB ARRAY // Added: from product specifications PDF
+  in_box_items : JSONB ARRAY // Added: from product specifications PDF
+  is_active : BOOLEAN
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+  deleted_at : TIMESTAMP <<nullable>>
+}
+
+entity product_variants {
+  * id : UUID
+  --
+  FK product_id : UUID
+  sku : VARCHAR(50) <<unique>>
+  name : VARCHAR(255)
+  price : DECIMAL(10,2)
+  stock_quantity : INTEGER
+  image_url : VARCHAR(255)
+  weight : DECIMAL(10,2)
+  dimensions : JSONB // {length, width, height, unit}
+  attribute_values : JSONB // {size: "18mm", color: "Black Gold"}
+  specifications : JSONB // Added: technical specs like display, battery, watchproof from PDF
+  is_active : BOOLEAN
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+  deleted_at : TIMESTAMP <<nullable>>
+}
+
+entity discounts {
+  * id : UUID
+  --
+  code : VARCHAR <<unique>>
+  type : VARCHAR // percentage, fixed_amount
+  value : DECIMAL(10,2)
+  minimum_order_amount : DECIMAL(10,2)
+  starts_at : TIMESTAMP
+  expires_at : TIMESTAMP <<nullable>> // Adjusted: nullable
+  usage_limit : INTEGER
+  uses_count : INTEGER
+  is_active : BOOLEAN
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+  deleted_at : TIMESTAMP <<nullable>>
+}
+
+entity customers {
+  * id : UUID
+  --
+  first_name : VARCHAR(255)
+  last_name : VARCHAR(255)
+  email : VARCHAR(255) <<unique>>
+  phone_number : VARCHAR(50)
+  password_hash : VARCHAR(255) // Added: for user authentication
+  salt : VARCHAR(255) // Added: for user authentication
+  address_details : JSONB // e.g., {street, city, province, postal_code, country}
+  last_login_at : TIMESTAMP <<nullable>> // Added: for user activity tracking
+  is_email_verified : BOOLEAN // Added: for email verification flow
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+  deleted_at : TIMESTAMP <<nullable>>
+}
+
+entity carts {
+  * id : UUID
+  --
+  FK customer_id : UUID <<nullable>> // Added: Link to customer for logged-in users
+  expires_at : TIMESTAMP <<nullable>> // Added: For cart expiration
+  is_active : BOOLEAN // Added: To mark active/abandoned/converted carts
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+  deleted_at : TIMESTAMP <<nullable>>
+}
+
+entity cart_items {
+  * id : UUID
+  --
+  FK cart_id : UUID
+  FK product_variant_id : UUID
+  quantity : INTEGER
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+  deleted_at : TIMESTAMP <<nullable>>
+}
+
+entity orders {
+  * id : UUID
+  --
+  order_number : VARCHAR(50) <<unique>> // Added: Human-readable order number
+  FK customer_id : UUID <<nullable>>
+  customer_name : VARCHAR(255)
+  customer_email : VARCHAR(255)
+  customer_phone : VARCHAR(50)
+  shipping_street_address : VARCHAR(255)
+  shipping_city : VARCHAR(100)
+  shipping_province : VARCHAR(100)
+  shipping_postal_code : VARCHAR(20)
+  shipping_country : VARCHAR(100)
+  billing_address_details : JSONB
+  total_amount : DECIMAL(10,2)
+  currency : VARCHAR(3) // Added: e.g., 'IDR', 'USD'
+  order_status : VARCHAR(50) // pending, processing, shipped, delivered, cancelled
+  payment_method : VARCHAR(50)
+  payment_processor : VARCHAR(50) // Added: e.g., Midtrans, Stripe
+  payment_status : VARCHAR(50) // pending, paid, failed, refunded
+  payment_gateway_transaction_id : VARCHAR(255)
+  shipping_cost : DECIMAL(10,2)
+  discount_code_applied : VARCHAR(50) <<nullable>>
+  discount_amount : DECIMAL(10,2) <<nullable>>
+  source_channel : VARCHAR(50) // Added: e.g., 'web', 'whatsapp'
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+  deleted_at : TIMESTAMP <<nullable>>
+}
+
+entity order_items {
+  * id : UUID
+  --
+  FK order_id : UUID
+  FK product_variant_id : UUID
+  quantity : INTEGER
+  price_at_purchase : DECIMAL(10,2)
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+  deleted_at : TIMESTAMP <<nullable>>
+}
+
+entity payment_transactions {
+  * id : UUID
+  --
+  FK order_id : UUID
+  gateway_transaction_id : VARCHAR(255)
+  amount : DECIMAL(10,2)
+  currency : VARCHAR(3) // Added: Important for transactions
+  status : VARCHAR(50) // initiated, success, failed, refunded
+  gateway_response_raw : JSONB
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+  deleted_at : TIMESTAMP <<nullable>>
+}
+
+entity invoices {
+  * id : UUID
+  --
+  FK order_id : UUID
+  invoice_number : VARCHAR(100) <<unique>>
+  invoice_date : TIMESTAMP
+  total_amount : DECIMAL(10,2)
+  currency : VARCHAR(3)
+  invoice_file_url : VARCHAR(255)
+  status : VARCHAR(50) // draft, issued, paid, cancelled
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+  deleted_at : TIMESTAMP <<nullable>>
+}
+
+entity shipments {
+  * id : UUID
+  --
+  FK order_id : UUID
+  tracking_number : VARCHAR(255) <<unique>>
+  shipper_name : VARCHAR(100)
+  shipping_cost : DECIMAL(10,2)
+  shipment_date : TIMESTAMP
+  packing_slip_url : VARCHAR(255) <<nullable>>
+  packing_photo_urls : JSONB ARRAY <<nullable>>
+  packing_video_url : VARCHAR(255) <<nullable>>
+  status : VARCHAR(50) // pending, shipped, in_transit, delivered, returned
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+  deleted_at : TIMESTAMP <<nullable>>
+}
+
+entity shipment_items {
+  * id : UUID
+  --
+  FK shipment_id : UUID
+  FK order_item_id : UUID
+  quantity : INTEGER
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+  deleted_at : TIMESTAMP <<nullable>>
+}
+
+' Relationships
+products ||--o{ product_variants : "has"
+carts ||--o{ cart_items : "contains"
+product_variants "0..*" o-- "1" cart_items : "is in"
+orders ||--o{ order_items : "contains"
+product_variants "0..*" o-- "1" order_items : "is part of"
+orders ||--o{ payment_transactions : "has"
+orders ||--o{ invoices : "generates"
+orders ||--o{ shipments : "includes"
+shipments ||--o{ shipment_items : "comprises"
+order_items "0..*" o-- "1" shipment_items : "is shipped as part of"
+customers "0..*" o-- "0..*" orders : "places"
+customers "0..1" o-- "0..*" carts : "owns" ' New relationship for customer-cart
+
+@enduml
