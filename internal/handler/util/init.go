@@ -3,6 +3,7 @@ package util
 import (
 	"github.com/hanifbg/landing_backend/config"
 	"github.com/hanifbg/landing_backend/internal/handler/cart"
+	"github.com/hanifbg/landing_backend/internal/handler/category"
 	"github.com/hanifbg/landing_backend/internal/handler/payment"
 	"github.com/hanifbg/landing_backend/internal/handler/product"
 	"github.com/hanifbg/landing_backend/internal/handler/shipping"
@@ -23,6 +24,9 @@ func InitHandler(cfg *config.AppConfig, e *echo.Echo, servWrapper *serv.ServiceW
 
 	// Initialize shipping routes
 	shipping.InitRoute(e, servWrapper)
+
+	// Initialize category routes
+	category.InitRoute(e, servWrapper)
 
 	// Init swagger
 	swagger.InitRoute(e)

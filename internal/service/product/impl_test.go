@@ -101,6 +101,41 @@ func TestProductService_GetAllProducts(t *testing.T) {
 		assert.Nil(t, result)
 		assert.Contains(t, err.Error(), "database error")
 	})
+
+	t.Run("Success - Get all products by category", func(t *testing.T) {
+		// Arrange
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		mockProductRepo := mocks.NewMockProductRepository(ctrl)
+		service := createTestProductService(mockProductRepo)
+
+		category := "Electronics"
+		expectedProducts := []entity.Product{
+			{
+				ID:          "product-1",
+				Name:        "Test Product 1",
+				Description: "Test Description 1",
+				Category:    "Electronics",
+				Brand:       "TestBrand",
+				Features:    entity.JSONArray{"Feature 1", "Feature 2"},
+				InBoxItems:  entity.JSONArray{"Item 1", "Item 2"},
+				ImageURLs:   entity.JSONArray{"https://example.com/image1.jpg"},
+				IsActive:    true,
+			},
+		}
+
+		mockProductRepo.EXPECT().GetAllProductsByCategory(category).Return(expectedProducts, nil)
+
+		// Act
+		result, err := service.GetAllProducts(category)
+
+		// Assert
+		assert.NoError(t, err)
+		assert.NotNil(t, result)
+		assert.Len(t, result, 1)
+		assert.Equal(t, expectedProducts, result)
+	})
 }
 
 func TestProductService_GetProductByID(t *testing.T) {

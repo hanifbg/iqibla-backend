@@ -65,5 +65,6 @@ func (repo *RepoDatabase) MigrateDB() error {
 		&entity.Order{},
 		&entity.OrderItem{},
 		&entity.Payment{},
+		&entity.Category{},
 	)
 }

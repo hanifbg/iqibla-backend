@@ -194,6 +194,7 @@ func TestPaymentService_GetOrder(t *testing.T) {
 		}
 
 		mockPaymentRepo.EXPECT().GetOrderWithItems("order-123").Return(order, nil)
+		mockPaymentRepo.EXPECT().FindPaymentByOrderID("order-123").Return(nil, nil)
 
 		// Act
 		result, err := service.GetOrder("order-123")

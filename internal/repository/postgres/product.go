@@ -52,3 +52,17 @@ func (repo *RepoDatabase) GetAllProductsByCategory(category string) ([]entity.Pr
 
 	return products, nil
 }
+
+func (repo *RepoDatabase) GetAllProductsByCategorySlug(categorySlug string) ([]entity.Product, error) {
+	var products []entity.Product
+
+	result := repo.DB.Preload("Variants", "is_active = ?", true).
+		Where("category = ? AND is_active = ?", categorySlug, true).
+		Find(&products)
+
+	if result.Error != nil {
+		return nil, fmt.Errorf("failed to fetch products: %v", result.Error)
+	}
+
+	return products, nil
+}

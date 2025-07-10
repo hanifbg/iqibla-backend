@@ -131,6 +131,7 @@ func (s *PaymentService) CreateOrder(req request.CreateOrderRequest) (*response.
 }
 
 func (s *PaymentService) GetOrder(orderID string) (*response.OrderResponse, error) {
+	var payment *response.PaymentResponse
 	// Get order with items
 	order, err := s.paymentRepo.GetOrderWithItems(orderID)
 	if err != nil {
@@ -155,6 +156,21 @@ func (s *PaymentService) GetOrder(orderID string) (*response.OrderResponse, erro
 		fmt.Errorf("failed to get payment: %v", err)
 	}
 
+	if existingPayment != nil {
+		payment = &response.PaymentResponse{
+			ID:            existingPayment.ID,
+			OrderID:       existingPayment.OrderID,
+			Amount:        existingPayment.Amount,
+			Status:        existingPayment.Status,
+			PaymentMethod: string(existingPayment.PaymentMethod),
+			TransactionID: existingPayment.TransactionID,
+			// PaymentToken:  existingPayment.PaymentToken,
+			// PaymentURL:    existingPayment.PaymentURL,
+			// ExpiryTime:    existingPayment.ExpiryTime,
+			CreatedAt: existingPayment.CreatedAt,
+		}
+	}
+
 	orderResponse := &response.OrderResponse{
 		ID:                  order.ID,
 		OrderNumber:         order.OrderNumber,
@@ -177,18 +193,7 @@ func (s *PaymentService) GetOrder(orderID string) (*response.OrderResponse, erro
 		Notes:               order.Notes,
 		OrderItems:          itemResponses,
 		CreatedAt:           order.CreatedAt,
-		Payment: &response.PaymentResponse{
-			ID:            existingPayment.ID,
-			OrderID:       existingPayment.OrderID,
-			Amount:        existingPayment.Amount,
-			Status:        existingPayment.Status,
-			PaymentMethod: string(existingPayment.PaymentMethod),
-			TransactionID: existingPayment.TransactionID,
-			// PaymentToken:  existingPayment.PaymentToken,
-			// PaymentURL:    existingPayment.PaymentURL,
-			// ExpiryTime:    existingPayment.ExpiryTime,
-			CreatedAt: existingPayment.CreatedAt,
-		},
+		Payment:             payment,
 	}
 
 	return orderResponse, nil

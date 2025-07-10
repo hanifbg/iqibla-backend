@@ -10,6 +10,7 @@ type RepoWrapper struct {
 	ProductRepo repository.ProductRepository
 	CartRepo    repository.CartRepository
 	PaymentRepo repository.PaymentRepository
+	CategoryRepo repository.CategoryRepository
 }
 
 func New(cfg *config.AppConfig) (repoWrapper *RepoWrapper, err error) {
@@ -29,6 +30,7 @@ func New(cfg *config.AppConfig) (repoWrapper *RepoWrapper, err error) {
 		ProductRepo: dbConnection,
 		CartRepo:    dbConnection,
 		PaymentRepo: dbConnection,
+		CategoryRepo: dbConnection,
 	}
 
 	return
