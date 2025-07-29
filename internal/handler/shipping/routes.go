@@ -21,5 +21,6 @@ func (h *ApiWrapper) registerRouter(e *echo.Echo) {
 	shippingGroup := e.Group("/api/v1/shipping")
 	shippingGroup.GET("/provinces", h.GetProvinces)
 	shippingGroup.GET("/cities/:province_id", h.GetCities)
+	shippingGroup.GET("/districts/:city_id", h.GetDistricts)
 	shippingGroup.POST("/cost", h.CalculateShippingCost)
 }

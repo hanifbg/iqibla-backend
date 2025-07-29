@@ -78,3 +78,18 @@ func (mr *MockRajaOngkirClientInterfaceMockRecorder) GetProvinces(provinceID int
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProvinces", reflect.TypeOf((*MockRajaOngkirClientInterface)(nil).GetProvinces), provinceID)
 }
+
+// GetDistricts mocks base method.
+func (m *MockRajaOngkirClientInterface) GetDistricts(cityID string) ([]response.RajaOngkirDistrict, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetDistricts", cityID)
+	ret0, _ := ret[0].([]response.RajaOngkirDistrict)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetDistricts indicates an expected call of GetDistricts.
+func (mr *MockRajaOngkirClientInterfaceMockRecorder) GetDistricts(cityID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDistricts", reflect.TypeOf((*MockRajaOngkirClientInterface)(nil).GetDistricts), cityID)
+}

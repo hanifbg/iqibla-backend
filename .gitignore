@@ -7,3 +7,4 @@ app.yaml
 coverage.html
 coverage.out
 *.exe
+.github/prompts/

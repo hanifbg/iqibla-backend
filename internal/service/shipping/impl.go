@@ -45,6 +45,26 @@ func (s *ShippingService) GetCities(req request.GetCitiesRequest) ([]response.Ci
 	return result, nil
 }
 
+func (s *ShippingService) GetDistricts(req request.GetDistrictsRequest) ([]response.DistrictResponse, error) {
+	districts, err := s.rajaOngkirClient.GetDistricts(req.CityID)
+	if err != nil {
+		return nil, err
+	}
+
+	var result []response.DistrictResponse
+	for _, district := range districts {
+		result = append(result, response.DistrictResponse{
+			DistrictID:   strconv.Itoa(district.DistrictID),
+			CityID:       strconv.Itoa(district.CityID),
+			City:         district.City,
+			DistrictName: district.DistrictName,
+			Type:         district.Type,
+		})
+	}
+
+	return result, nil
+}
+
 func (s *ShippingService) CalculateShippingCost(req request.CalculateShippingRequest) ([]response.ShippingCostResponse, error) {
 	costs, err := s.rajaOngkirClient.CalculateShippingCost(req.Origin, req.Destination, req.Weight, req.Courier)
 	if err != nil {

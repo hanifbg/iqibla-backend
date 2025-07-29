@@ -7,5 +7,6 @@ import "github.com/hanifbg/landing_backend/internal/model/response"
 type RajaOngkirClientInterface interface {
 	GetProvinces(provinceID string) ([]response.RajaOngkirProvince, error)
 	GetCities(provinceID, cityID string) ([]response.RajaOngkirCity, error)
+	GetDistricts(cityID string) ([]response.RajaOngkirDistrict, error)
 	CalculateShippingCost(origin, destination string, weight int, courier string) ([]response.RajaOngkirCost, error)
 }

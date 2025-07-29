@@ -150,7 +150,7 @@ func TestRajaOngkirClient_GetProvinces(t *testing.T) {
 
 // Test GetCities method
 func TestRajaOngkirClient_GetCities(t *testing.T) {
-		t.Run("Success - Get cities by province ID", func(t *testing.T) {
+	t.Run("Success - Get cities by province ID", func(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, "GET", r.Method)
 			assert.Equal(t, "/destination/city/1", r.URL.Path)
@@ -163,7 +163,7 @@ func TestRajaOngkirClient_GetCities(t *testing.T) {
 				},
 				Data: []response.RajaOngkirCity{
 					{
-						CityID:     1,
+						CityID: 1,
 						// ProvinceID is populated from the request
 						Province:   "Bali",
 						Type:       "Kabupaten",
@@ -187,9 +187,7 @@ func TestRajaOngkirClient_GetCities(t *testing.T) {
 		assert.Equal(t, 1, result[0].ProvinceID)
 	})
 
-
-
-		t.Run("Error - API returns error status for cities", func(t *testing.T) {
+	t.Run("Error - API returns error status for cities", func(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, "/destination/city/999", r.URL.Path)
 			komerceResp := response.KomerceCityResponse{
@@ -332,5 +330,150 @@ func TestRajaOngkirClient_CalculateShippingCost(t *testing.T) {
 		assert.Error(t, err)
 		assert.Nil(t, result)
 		assert.Contains(t, err.Error(), "failed to make request")
+	})
+}
+
+// Test GetDistricts method
+func TestRajaOngkirClient_GetDistricts(t *testing.T) {
+	t.Run("Success - Get districts by city ID", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, "GET", r.Method)
+			assert.Equal(t, "/destination/district/1", r.URL.Path)
+			assert.Equal(t, "test-api-key", r.Header.Get("key"))
+
+			// Define a struct for the response
+			type DistrictResponse struct {
+				Meta response.Meta                 `json:"meta"`
+				Data []response.RajaOngkirDistrict `json:"data"`
+			}
+
+			districtResp := DistrictResponse{
+				Meta: response.Meta{
+					Code:    200,
+					Message: "OK",
+				},
+				Data: []response.RajaOngkirDistrict{
+					{
+						DistrictID: 1,
+						// CityID is populated from the request
+						City:         "Jakarta Barat",
+						DistrictName: "Cengkareng",
+						Type:         "Kecamatan",
+					},
+					{
+						DistrictID: 2,
+						// CityID is populated from the request
+						City:         "Jakarta Barat",
+						DistrictName: "Grogol Petamburan",
+						Type:         "Kecamatan",
+					},
+				},
+			}
+
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(districtResp)
+		}))
+		defer server.Close()
+
+		client := NewRajaOngkirClient("test-api-key", server.URL)
+		result, err := client.GetDistricts("1")
+
+		assert.NoError(t, err)
+		assert.Len(t, result, 2)
+		assert.Equal(t, 1, result[0].DistrictID)
+		assert.Equal(t, 1, result[0].CityID)
+		assert.Equal(t, "Cengkareng", result[0].DistrictName)
+	})
+
+	t.Run("Success - Empty district list", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, "/destination/district/999", r.URL.Path)
+
+			type DistrictResponse struct {
+				Meta response.Meta                 `json:"meta"`
+				Data []response.RajaOngkirDistrict `json:"data"`
+			}
+
+			districtResp := DistrictResponse{
+				Meta: response.Meta{
+					Code:    200,
+					Message: "OK",
+				},
+				Data: []response.RajaOngkirDistrict{},
+			}
+
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(districtResp)
+		}))
+		defer server.Close()
+
+		client := NewRajaOngkirClient("test-api-key", server.URL)
+		result, err := client.GetDistricts("999")
+
+		assert.NoError(t, err)
+		assert.Len(t, result, 0)
+	})
+
+	t.Run("Error - API returns error status", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, "/destination/district/999", r.URL.Path)
+
+			type DistrictResponse struct {
+				Meta response.Meta `json:"meta"`
+				Data interface{}   `json:"data"`
+			}
+
+			districtResp := DistrictResponse{
+				Meta: response.Meta{
+					Code:    400,
+					Message: "Invalid city ID",
+				},
+				Data: nil,
+			}
+
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(districtResp)
+		}))
+		defer server.Close()
+
+		client := NewRajaOngkirClient("test-api-key", server.URL)
+		result, err := client.GetDistricts("999")
+
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		assert.Contains(t, err.Error(), "API error: Invalid city ID")
+	})
+
+	t.Run("Error - Invalid JSON response", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			w.Write([]byte("invalid json"))
+		}))
+		defer server.Close()
+
+		client := NewRajaOngkirClient("test-api-key", server.URL)
+		result, err := client.GetDistricts("1")
+
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		assert.Contains(t, err.Error(), "failed to unmarshal")
+	})
+
+	t.Run("Error - Server unavailable", func(t *testing.T) {
+		client := NewRajaOngkirClient("test-api-key", "http://invalid-url")
+		result, err := client.GetDistricts("1")
+
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		assert.Contains(t, err.Error(), "failed to make request")
+	})
+
+	t.Run("Error - Missing cityID parameter", func(t *testing.T) {
+		client := NewRajaOngkirClient("test-api-key", "http://test-url")
+		result, err := client.GetDistricts("")
+
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		assert.Contains(t, err.Error(), "cityID is required")
 	})
 }

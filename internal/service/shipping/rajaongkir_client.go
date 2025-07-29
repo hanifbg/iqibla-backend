@@ -131,6 +131,60 @@ func (r *RajaOngkirClient) GetCities(provinceID, cityID string) ([]response.Raja
 	return cities, nil
 }
 
+// GetDistricts retrieves a list of districts from RajaOngkir API
+func (r *RajaOngkirClient) GetDistricts(cityID string) ([]response.RajaOngkirDistrict, error) {
+	if cityID == "" {
+		return nil, fmt.Errorf("cityID is required to get districts")
+	}
+	requestURL := fmt.Sprintf("%s/destination/district/%s", r.baseURL, cityID)
+
+	req, err := http.NewRequest("GET", requestURL, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+
+	req.Header.Set("key", r.apiKey)
+
+	resp, err := r.client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to make request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response body: %w", err)
+	}
+
+	// Define a struct to match the expected response format
+	type DistrictResponse struct {
+		Meta response.Meta                 `json:"meta"`
+		Data []response.RajaOngkirDistrict `json:"data"`
+	}
+
+	var districtResp DistrictResponse
+	if err := json.Unmarshal(body, &districtResp); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal district response: %w", err)
+	}
+
+	if districtResp.Meta.Code != 200 {
+		return nil, fmt.Errorf("API error: %s", districtResp.Meta.Message)
+	}
+
+	cityIDInt, err := strconv.Atoi(cityID)
+	if err != nil {
+		return nil, fmt.Errorf("invalid cityID format: %w", err)
+	}
+
+	// Ensure CityID is set for all districts
+	districts := districtResp.Data
+	for i := range districts {
+		districts[i].CityID = cityIDInt
+	}
+
+	return districts, nil
+}
+
 func (r *RajaOngkirClient) CalculateShippingCost(origin, destination string, weight int, courier string) ([]response.RajaOngkirCost, error) {
 	// Updated to use the correct endpoint for cost calculation
 	requestURL := fmt.Sprintf("%s/calculate/district/domestic-cost", r.baseURL)
@@ -196,8 +250,8 @@ func (r *RajaOngkirClient) CalculateShippingCost(origin, destination string, wei
 		if !exists {
 			// Create a new courier entry
 			cost = &response.RajaOngkirCost{
-				Code:  item.Code,
-				Name:  item.Name,
+				Code: item.Code,
+				Name: item.Name,
 				Costs: []struct {
 					Service     string `json:"service"`
 					Description string `json:"description"`

@@ -575,7 +575,7 @@ const docTemplate = `{
         },
         "/api/v1/products": {
             "get": {
-                "description": "Retrieves all active products with their variants",
+                "description": "Retrieves all active products with their variants, optionally filtered by category",
                 "consumes": [
                     "application/json"
                 ],
@@ -586,6 +586,14 @@ const docTemplate = `{
                     "products"
                 ],
                 "summary": "Get all active products",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Filter products by category",
+                        "name": "category",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -653,6 +661,171 @@ const docTemplate = `{
                             "additionalProperties": {
                                 "type": "string"
                             }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/shipping/cities/{province_id}": {
+            "get": {
+                "description": "Get cities by province ID and/or city ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "shipping"
+                ],
+                "summary": "Get cities",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Province ID",
+                        "name": "province_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "City ID (optional)",
+                        "name": "id",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/shipping/cost": {
+            "post": {
+                "description": "Calculate shipping cost based on origin, destination, weight, and courier",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "shipping"
+                ],
+                "summary": "Calculate shipping cost",
+                "parameters": [
+                    {
+                        "description": "Calculate shipping cost request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.CalculateShippingRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/shipping/districts/{city_id}": {
+            "get": {
+                "description": "Get districts by city ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "shipping"
+                ],
+                "summary": "Get districts",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "City ID",
+                        "name": "city_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/shipping/provinces": {
+            "get": {
+                "description": "Get a list of all provinces or specific province by ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "shipping"
+                ],
+                "summary": "Get provinces",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Province ID (optional)",
+                        "name": "id",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
                         }
                     }
                 }
@@ -853,6 +1026,29 @@ const docTemplate = `{
                 }
             }
         },
+        "request.CalculateShippingRequest": {
+            "type": "object",
+            "required": [
+                "courier",
+                "destination",
+                "origin",
+                "weight"
+            ],
+            "properties": {
+                "courier": {
+                    "type": "string"
+                },
+                "destination": {
+                    "type": "string"
+                },
+                "origin": {
+                    "type": "string"
+                },
+                "weight": {
+                    "type": "integer"
+                }
+            }
+        },
         "request.CreateOrderRequest": {
             "type": "object",
             "required": [
@@ -860,7 +1056,14 @@ const docTemplate = `{
                 "customer_email",
                 "customer_name",
                 "customer_phone",
-                "shipping_address"
+                "shipping_address",
+                "shipping_city_id",
+                "shipping_cost",
+                "shipping_courier",
+                "shipping_postal_code",
+                "shipping_province_id",
+                "shipping_service",
+                "total_weight"
             ],
             "properties": {
                 "cart_id": {
@@ -880,6 +1083,27 @@ const docTemplate = `{
                 },
                 "shipping_address": {
                     "type": "string"
+                },
+                "shipping_city_id": {
+                    "type": "string"
+                },
+                "shipping_cost": {
+                    "type": "number"
+                },
+                "shipping_courier": {
+                    "type": "string"
+                },
+                "shipping_postal_code": {
+                    "type": "string"
+                },
+                "shipping_province_id": {
+                    "type": "string"
+                },
+                "shipping_service": {
+                    "type": "string"
+                },
+                "total_weight": {
+                    "type": "integer"
                 }
             }
         },
@@ -974,14 +1198,16 @@ const docTemplate = `{
         "response.OrderItemResponse": {
             "type": "object",
             "properties": {
-                "attributes": {
-                    "type": "object",
-                    "additionalProperties": true
-                },
                 "id": {
                     "type": "string"
                 },
-                "image_url": {
+                "price_at_purchase": {
+                    "type": "number"
+                },
+                "product_image": {
+                    "type": "string"
+                },
+                "product_name": {
                     "type": "string"
                 },
                 "product_variant_id": {
@@ -989,15 +1215,6 @@ const docTemplate = `{
                 },
                 "quantity": {
                     "type": "integer"
-                },
-                "subtotal": {
-                    "type": "number"
-                },
-                "unit_price": {
-                    "type": "number"
-                },
-                "variant_name": {
-                    "type": "string"
                 }
             }
         },
@@ -1008,6 +1225,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "created_at": {
+                    "type": "string"
+                },
+                "currency": {
                     "type": "string"
                 },
                 "customer_email": {
@@ -1022,35 +1242,62 @@ const docTemplate = `{
                 "discount_amount": {
                     "type": "number"
                 },
-                "discount_code": {
+                "discount_code_applied": {
                     "type": "string"
                 },
                 "id": {
                     "type": "string"
                 },
-                "items": {
+                "notes": {
+                    "type": "string"
+                },
+                "order_items": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/response.OrderItemResponse"
                     }
                 },
-                "notes": {
+                "order_number": {
                     "type": "string"
                 },
                 "order_status": {
                     "type": "string"
                 },
+                "payment": {
+                    "$ref": "#/definitions/response.PaymentResponse"
+                },
+                "payment_gateway_transaction_id": {
+                    "type": "string"
+                },
+                "payment_processor": {
+                    "type": "string"
+                },
                 "shipping_address": {
+                    "type": "string"
+                },
+                "shipping_city_id": {
                     "type": "string"
                 },
                 "shipping_cost": {
                     "type": "number"
+                },
+                "shipping_postal_code": {
+                    "type": "string"
+                },
+                "shipping_province_id": {
+                    "type": "string"
+                },
+                "source_channel": {
+                    "type": "string"
                 },
                 "subtotal": {
                     "type": "number"
                 },
                 "total_amount": {
                     "type": "number"
+                },
+                "updated_at": {
+                    "type": "string"
                 }
             }
         },
