@@ -15,7 +15,7 @@ import (
 func TestNewRajaOngkirClient(t *testing.T) {
 	t.Run("Success - Create RajaOngkir client", func(t *testing.T) {
 		apiKey := "test-api-key"
-		baseURL := "https://api.rajaongkir.com/starter"
+		baseURL := "https://api.rajaongkir.com/starter/v2"
 
 		client := NewRajaOngkirClient(apiKey, baseURL)
 
@@ -33,34 +33,28 @@ func TestRajaOngkirClient_GetProvinces(t *testing.T) {
 		// Create mock server
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, "GET", r.Method)
-			assert.Equal(t, "/province", r.URL.Path)
+			assert.Equal(t, "/destination/province", r.URL.Path)
 			assert.Equal(t, "test-api-key", r.Header.Get("key"))
 
-			response := response.RajaOngkirResponse{
-				RajaOngkir: struct {
-					Query   interface{} `json:"query"`
-					Status  response.Status      `json:"status"`
-					Results interface{} `json:"results"`
-				}{
-					Status: response.Status{
-						Code:        200,
-						Description: "OK",
+			komerceResp := response.KomerceProvinceResponse{
+				Meta: response.Meta{
+					Code:    200,
+					Message: "OK",
+				},
+				Data: []response.RajaOngkirProvince{
+					{
+						ProvinceID: 1,
+						Province:   "Bali",
 					},
-					Results: []response.RajaOngkirProvince{
-						{
-							ProvinceID: "1",
-							Province:   "Bali",
-						},
-						{
-							ProvinceID: "2",
-							Province:   "Bangka Belitung",
-						},
+					{
+						ProvinceID: 2,
+						Province:   "Bangka Belitung",
 					},
 				},
 			}
 
 			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(response)
+			json.NewEncoder(w).Encode(komerceResp)
 		}))
 		defer server.Close()
 
@@ -69,37 +63,31 @@ func TestRajaOngkirClient_GetProvinces(t *testing.T) {
 
 		assert.NoError(t, err)
 		assert.Len(t, result, 2)
-		assert.Equal(t, "1", result[0].ProvinceID)
+		assert.Equal(t, 1, result[0].ProvinceID)
 		assert.Equal(t, "Bali", result[0].Province)
 	})
 
 	t.Run("Success - Get specific province by ID", func(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, "GET", r.Method)
-			assert.Equal(t, "/province", r.URL.Path)
-			assert.Equal(t, "id=1", r.URL.RawQuery)
+			assert.Equal(t, "/destination/province/1", r.URL.Path)
 
-			// RajaOngkir API returns a single object when querying by ID
-			response := response.RajaOngkirResponse{
-				RajaOngkir: struct {
-					Query   interface{} `json:"query"`
-					Status  response.Status      `json:"status"`
-					Results interface{} `json:"results"`
-				}{
-					Status: response.Status{
-						Code:        200,
-						Description: "OK",
-					},
-					// Single object response for specific province
-					Results: response.RajaOngkirProvince{
-						ProvinceID: "1",
+			// Komerce API returns a single object in the data array
+			komerceResp := response.KomerceProvinceResponse{
+				Meta: response.Meta{
+					Code:    200,
+					Message: "OK",
+				},
+				Data: []response.RajaOngkirProvince{
+					{
+						ProvinceID: 1,
 						Province:   "Bali",
 					},
 				},
 			}
 
 			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(response)
+			json.NewEncoder(w).Encode(komerceResp)
 		}))
 		defer server.Close()
 
@@ -108,27 +96,22 @@ func TestRajaOngkirClient_GetProvinces(t *testing.T) {
 
 		assert.NoError(t, err)
 		assert.Len(t, result, 1)
-		assert.Equal(t, "1", result[0].ProvinceID)
+		assert.Equal(t, 1, result[0].ProvinceID)
 		assert.Equal(t, "Bali", result[0].Province)
 	})
 
 	t.Run("Error - API returns error status", func(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			response := response.RajaOngkirResponse{
-				RajaOngkir: struct {
-					Query   interface{} `json:"query"`
-					Status  response.Status      `json:"status"`
-					Results interface{} `json:"results"`
-				}{
-					Status: response.Status{
-						Code:        400,
-						Description: "Invalid API key",
-					},
+			assert.Equal(t, "/destination/province", r.URL.Path)
+			komerceResp := response.KomerceProvinceResponse{
+				Meta: response.Meta{
+					Code:    400,
+					Message: "Invalid API key",
 				},
 			}
 
 			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(response)
+			json.NewEncoder(w).Encode(komerceResp)
 		}))
 		defer server.Close()
 
@@ -137,7 +120,7 @@ func TestRajaOngkirClient_GetProvinces(t *testing.T) {
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
-		assert.Contains(t, err.Error(), "Invalid API key")
+		assert.Contains(t, err.Error(), "API error: Invalid API key")
 	})
 
 	t.Run("Error - Invalid JSON response", func(t *testing.T) {
@@ -167,78 +150,31 @@ func TestRajaOngkirClient_GetProvinces(t *testing.T) {
 
 // Test GetCities method
 func TestRajaOngkirClient_GetCities(t *testing.T) {
-	t.Run("Success - Get all cities", func(t *testing.T) {
+		t.Run("Success - Get cities by province ID", func(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, "GET", r.Method)
-			assert.Equal(t, "/city", r.URL.Path)
+			assert.Equal(t, "/destination/city/1", r.URL.Path)
 			assert.Equal(t, "test-api-key", r.Header.Get("key"))
 
-			response := response.RajaOngkirResponse{
-				RajaOngkir: struct {
-					Query   interface{} `json:"query"`
-					Status  response.Status      `json:"status"`
-					Results interface{} `json:"results"`
-				}{
-					Status: response.Status{
-						Code:        200,
-						Description: "OK",
-					},
-					Results: []response.RajaOngkirCity{
-						{
-							CityID:     "1",
-							ProvinceID: "1",
-							Province:   "Bali",
-							Type:       "Kabupaten",
-							CityName:   "Badung",
-							PostalCode: "80351",
-						},
+			komerceResp := response.KomerceCityResponse{
+				Meta: response.Meta{
+					Code:    200,
+					Message: "OK",
+				},
+				Data: []response.RajaOngkirCity{
+					{
+						CityID:     1,
+						// ProvinceID is populated from the request
+						Province:   "Bali",
+						Type:       "Kabupaten",
+						CityName:   "Badung",
+						PostalCode: "80351",
 					},
 				},
 			}
 
 			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(response)
-		}))
-		defer server.Close()
-
-		client := NewRajaOngkirClient("test-api-key", server.URL)
-		result, err := client.GetCities("", "")
-
-		assert.NoError(t, err)
-		assert.Len(t, result, 1)
-		assert.Equal(t, "1", result[0].CityID)
-		assert.Equal(t, "Badung", result[0].CityName)
-	})
-
-	t.Run("Success - Get cities by province", func(t *testing.T) {
-		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			assert.Equal(t, "province=1", r.URL.RawQuery)
-
-			response := response.RajaOngkirResponse{
-				RajaOngkir: struct {
-					Query   interface{} `json:"query"`
-					Status  response.Status      `json:"status"`
-					Results interface{} `json:"results"`
-				}{
-					Status: response.Status{
-						Code:        200,
-						Description: "OK",
-					},
-					Results: []response.RajaOngkirCity{
-						{
-							CityID:     "1",
-							ProvinceID: "1",
-							Province:   "Bali",
-							Type:       "Kabupaten",
-							CityName:   "Badung",
-							PostalCode: "80351",
-						},
-					},
-				},
-			}
-
-			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(response)
+			json.NewEncoder(w).Encode(komerceResp)
 		}))
 		defer server.Close()
 
@@ -247,26 +183,24 @@ func TestRajaOngkirClient_GetCities(t *testing.T) {
 
 		assert.NoError(t, err)
 		assert.Len(t, result, 1)
-		assert.Equal(t, "1", result[0].ProvinceID)
+		assert.Equal(t, 1, result[0].CityID)
+		assert.Equal(t, 1, result[0].ProvinceID)
 	})
 
-	t.Run("Error - API returns error status", func(t *testing.T) {
+
+
+		t.Run("Error - API returns error status for cities", func(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			response := response.RajaOngkirResponse{
-				RajaOngkir: struct {
-					Query   interface{} `json:"query"`
-					Status  response.Status      `json:"status"`
-					Results interface{} `json:"results"`
-				}{
-					Status: response.Status{
-						Code:        400,
-						Description: "Invalid province ID",
-					},
+			assert.Equal(t, "/destination/city/999", r.URL.Path)
+			komerceResp := response.KomerceCityResponse{
+				Meta: response.Meta{
+					Code:    400,
+					Message: "Invalid province ID",
 				},
 			}
 
 			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(response)
+			json.NewEncoder(w).Encode(komerceResp)
 		}))
 		defer server.Close()
 
@@ -275,7 +209,7 @@ func TestRajaOngkirClient_GetCities(t *testing.T) {
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
-		assert.Contains(t, err.Error(), "Invalid province ID")
+		assert.Contains(t, err.Error(), "API error: Invalid province ID")
 	})
 }
 
@@ -284,7 +218,7 @@ func TestRajaOngkirClient_CalculateShippingCost(t *testing.T) {
 	t.Run("Success - Calculate shipping cost", func(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, "POST", r.Method)
-			assert.Equal(t, "/cost", r.URL.Path)
+			assert.Equal(t, "/calculate/district/domestic-cost", r.URL.Path)
 			assert.Equal(t, "test-api-key", r.Header.Get("key"))
 			assert.Equal(t, "application/x-www-form-urlencoded", r.Header.Get("content-type"))
 
@@ -295,46 +229,46 @@ func TestRajaOngkirClient_CalculateShippingCost(t *testing.T) {
 			assert.Equal(t, "1000", r.FormValue("weight"))
 			assert.Equal(t, "jne", r.FormValue("courier"))
 
-			response := response.RajaOngkirResponse{
-				RajaOngkir: struct {
-					Query   interface{} `json:"query"`
-					Status  response.Status      `json:"status"`
-					Results interface{} `json:"results"`
+			// Mock the new API response format
+			response := struct {
+				Meta struct {
+					Message string `json:"message"`
+					Code    int    `json:"code"`
+					Status  string `json:"status"`
+				} `json:"meta"`
+				Data []struct {
+					Name        string `json:"name"`
+					Code        string `json:"code"`
+					Service     string `json:"service"`
+					Description string `json:"description"`
+					Cost        int    `json:"cost"`
+					ETD         string `json:"etd"`
+				} `json:"data"`
+			}{
+				Meta: struct {
+					Message string `json:"message"`
+					Code    int    `json:"code"`
+					Status  string `json:"status"`
 				}{
-					Status: response.Status{
-						Code:        200,
-						Description: "OK",
-					},
-					Results: []response.RajaOngkirCost{
-						{
-							Code: "jne",
-							Name: "Jalur Nugraha Ekakurir (JNE)",
-							Costs: []struct {
-								Service     string `json:"service"`
-								Description string `json:"description"`
-								Cost        []struct {
-									Value int    `json:"value"`
-									ETD   string `json:"etd"`
-									Note  string `json:"note"`
-								} `json:"cost"`
-							}{
-								{
-									Service:     "REG",
-									Description: "Layanan Reguler",
-									Cost: []struct {
-										Value int    `json:"value"`
-										ETD   string `json:"etd"`
-										Note  string `json:"note"`
-									}{
-										{
-											Value: 15000,
-											ETD:   "1-2",
-											Note:  "",
-										},
-									},
-								},
-							},
-						},
+					Message: "Success Calculate Domestic Shipping cost",
+					Code:    200,
+					Status:  "success",
+				},
+				Data: []struct {
+					Name        string `json:"name"`
+					Code        string `json:"code"`
+					Service     string `json:"service"`
+					Description string `json:"description"`
+					Cost        int    `json:"cost"`
+					ETD         string `json:"etd"`
+				}{
+					{
+						Name:        "Jalur Nugraha Ekakurir (JNE)",
+						Code:        "jne",
+						Service:     "REG",
+						Description: "Layanan Reguler",
+						Cost:        15000,
+						ETD:         "1-2 day",
 					},
 				},
 			}
@@ -357,17 +291,25 @@ func TestRajaOngkirClient_CalculateShippingCost(t *testing.T) {
 
 	t.Run("Error - API returns error status", func(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			response := response.RajaOngkirResponse{
-				RajaOngkir: struct {
-					Query   interface{} `json:"query"`
-					Status  response.Status      `json:"status"`
-					Results interface{} `json:"results"`
+			// Mock the new API error response format
+			response := struct {
+				Meta struct {
+					Message string `json:"message"`
+					Code    int    `json:"code"`
+					Status  string `json:"status"`
+				} `json:"meta"`
+				Data interface{} `json:"data"`
+			}{
+				Meta: struct {
+					Message string `json:"message"`
+					Code    int    `json:"code"`
+					Status  string `json:"status"`
 				}{
-					Status: response.Status{
-						Code:        400,
-						Description: "Invalid courier",
-					},
+					Message: "Invalid courier",
+					Code:    400,
+					Status:  "error",
 				},
+				Data: nil,
 			}
 
 			w.Header().Set("Content-Type", "application/json")
@@ -380,7 +322,7 @@ func TestRajaOngkirClient_CalculateShippingCost(t *testing.T) {
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
-		assert.Contains(t, err.Error(), "Invalid courier")
+		assert.Contains(t, err.Error(), "RajaOngkir API error: Invalid courier")
 	})
 
 	t.Run("Error - Server unavailable", func(t *testing.T) {

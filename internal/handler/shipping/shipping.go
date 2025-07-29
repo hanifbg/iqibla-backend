@@ -27,7 +27,7 @@ func (h *ApiWrapper) GetProvinces(c echo.Context) error {
 
 func (h *ApiWrapper) GetCities(c echo.Context) error {
 	var req request.GetCitiesRequest
-	req.ProvinceID = c.QueryParam("province_id")
+	req.ProvinceID = c.Param("province_id")
 	req.ID = c.QueryParam("id")
 
 	cities, err := h.shippingService.GetCities(req)

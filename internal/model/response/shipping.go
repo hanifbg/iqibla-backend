@@ -21,6 +21,22 @@ type ShippingCostResponse struct {
 	ETD         string  `json:"etd"`
 }
 
+type KomerceProvinceResponse struct {
+	Meta Meta   `json:"meta"`
+	Data []RajaOngkirProvince `json:"data"`
+}
+
+type KomerceCityResponse struct {
+	Meta Meta   `json:"meta"`
+	Data []RajaOngkirCity `json:"data"`
+}
+
+type Meta struct {
+	Message string `json:"message"`
+	Code    int    `json:"code"`
+	Status  string `json:"status"`
+}
+
 type RajaOngkirResponse struct {
 	RajaOngkir struct {
 		Query   interface{} `json:"query"`
@@ -35,16 +51,16 @@ type Status struct {
 }
 
 type RajaOngkirProvince struct {
-	ProvinceID string `json:"province_id"`
-	Province   string `json:"province"`
+	ProvinceID int `json:"id"`
+	Province   string `json:"name"`
 }
 
 type RajaOngkirCity struct {
-	CityID     string `json:"city_id"`
-	ProvinceID string `json:"province_id"`
-	Province   string `json:"province"`
+	CityID     int `json:"id"`
+	ProvinceID int `json:"province_id"`
+	Province   string `json:"province_name"`
 	Type       string `json:"type"`
-	CityName   string `json:"city_name"`
+	CityName   string `json:"name"`
 	PostalCode string `json:"postal_code"`
 }
 

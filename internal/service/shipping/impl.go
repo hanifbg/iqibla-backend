@@ -1,6 +1,8 @@
 package shipping
 
 import (
+	"strconv"
+
 	"github.com/hanifbg/landing_backend/internal/model/request"
 	"github.com/hanifbg/landing_backend/internal/model/response"
 )
@@ -14,7 +16,7 @@ func (s *ShippingService) GetProvinces(req request.GetProvincesRequest) ([]respo
 	var result []response.ProvinceResponse
 	for _, province := range provinces {
 		result = append(result, response.ProvinceResponse{
-			ProvinceID: province.ProvinceID,
+			ProvinceID: strconv.Itoa(province.ProvinceID),
 			Province:   province.Province,
 		})
 	}
@@ -31,8 +33,8 @@ func (s *ShippingService) GetCities(req request.GetCitiesRequest) ([]response.Ci
 	var result []response.CityResponse
 	for _, city := range cities {
 		result = append(result, response.CityResponse{
-			CityID:     city.CityID,
-			ProvinceID: city.ProvinceID,
+			CityID:     strconv.Itoa(city.CityID),
+			ProvinceID: strconv.Itoa(city.ProvinceID),
 			Province:   city.Province,
 			Type:       city.Type,
 			CityName:   city.CityName,

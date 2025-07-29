@@ -22,11 +22,11 @@ func createTestShippingService(rajaOngkirClient RajaOngkirClientInterface) *Ship
 func createTestProvinces() []response.RajaOngkirProvince {
 	return []response.RajaOngkirProvince{
 		{
-			ProvinceID: "1",
+			ProvinceID: 1,
 			Province:   "Bali",
 		},
 		{
-			ProvinceID: "2",
+			ProvinceID: 2,
 			Province:   "Bangka Belitung",
 		},
 	}
@@ -36,16 +36,16 @@ func createTestProvinces() []response.RajaOngkirProvince {
 func createTestCities() []response.RajaOngkirCity {
 	return []response.RajaOngkirCity{
 		{
-			CityID:     "1",
-			ProvinceID: "1",
+			CityID:     1,
+			ProvinceID: 1,
 			Province:   "Bali",
 			Type:       "Kabupaten",
 			CityName:   "Badung",
 			PostalCode: "80351",
 		},
 		{
-			CityID:     "2",
-			ProvinceID: "1",
+			CityID:     2,
+			ProvinceID: 1,
 			Province:   "Bali",
 			Type:       "Kota",
 			CityName:   "Denpasar",
@@ -138,7 +138,7 @@ func TestShippingService_GetProvinces(t *testing.T) {
 		req := request.GetProvincesRequest{ID: "1"}
 		expectedProvinces := []response.RajaOngkirProvince{
 			{
-				ProvinceID: "1",
+				ProvinceID: 1,
 				Province:   "Bali",
 			},
 		}
@@ -245,8 +245,8 @@ func TestShippingService_GetCities(t *testing.T) {
 		req := request.GetCitiesRequest{ProvinceID: "1", ID: "1"}
 		expectedCities := []response.RajaOngkirCity{
 			{
-				CityID:     "1",
-				ProvinceID: "1",
+				CityID:     1,
+				ProvinceID: 1,
 				Province:   "Bali",
 				Type:       "Kabupaten",
 				CityName:   "Badung",
