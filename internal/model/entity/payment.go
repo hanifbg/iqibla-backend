@@ -62,6 +62,7 @@ type Order struct {
 	ShippingStreetAddress       string         `gorm:"type:varchar(255)" json:"shipping_street_address"`
 	ShippingCity                string         `gorm:"type:varchar(100)" json:"shipping_city"`
 	ShippingProvince            string         `gorm:"type:varchar(100)" json:"shipping_province"`
+	ShippingDistrict            string         `gorm:"type:varchar(100)" json:"shipping_district"`
 	ShippingPostalCode          string         `gorm:"type:varchar(20)" json:"shipping_postal_code"`
 	ShippingCountry             string         `gorm:"type:varchar(100)" json:"shipping_country"`
 	ShippingCourier             string         `gorm:"type:varchar(100)" json:"shipping_courier"`

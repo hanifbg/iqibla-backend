@@ -39,12 +39,20 @@ func TestPaymentService_CreateOrder(t *testing.T) {
 
 		cart := createTestCartWithItems()
 		req := request.CreateOrderRequest{
-			CartID:          "cart-123",
-			CustomerName:    "John Doe",
-			CustomerEmail:   "john@example.com",
-			CustomerPhone:   "+1234567890",
-			ShippingAddress: "123 Test St",
-			Notes:           "Test notes",
+			CartID:               "cart-123",
+			CustomerName:         "John Doe",
+			CustomerEmail:        "john@example.com",
+			CustomerPhone:        "+1234567890",
+			ShippingAddress:      "123 Test St",
+			ShippingCityName:     "Jakarta",
+			ShippingProvinceName: "DKI Jakarta",
+			ShippingDistrictName: "Kebayoran Baru",
+			ShippingPostalCode:   "12190",
+			ShippingCourier:      "jne",
+			ShippingService:      "REG",
+			ShippingCost:         10000,
+			TotalWeight:          1000,
+			Notes:                "Test notes",
 		}
 
 		mockCartRepo.EXPECT().GetCartWithItems("cart-123").Return(cart, nil)
@@ -76,11 +84,19 @@ func TestPaymentService_CreateOrder(t *testing.T) {
 		service := createTestPaymentService(mockPaymentRepo, mockCartRepo, mockSnapClient)
 
 		req := request.CreateOrderRequest{
-			CartID:          "invalid-cart",
-			CustomerName:    "John Doe",
-			CustomerEmail:   "john@example.com",
-			CustomerPhone:   "+1234567890",
-			ShippingAddress: "123 Test St",
+			CartID:               "invalid-cart",
+			CustomerName:         "John Doe",
+			CustomerEmail:        "john@example.com",
+			CustomerPhone:        "+1234567890",
+			ShippingAddress:      "123 Test St",
+			ShippingCityName:     "Jakarta",
+			ShippingProvinceName: "DKI Jakarta",
+			ShippingDistrictName: "Kebayoran Baru",
+			ShippingPostalCode:   "12190",
+			ShippingCourier:      "jne",
+			ShippingService:      "REG",
+			ShippingCost:         10000,
+			TotalWeight:          1000,
 		}
 
 		mockCartRepo.EXPECT().GetCartWithItems("invalid-cart").Return(nil, errors.New("cart not found"))
@@ -112,11 +128,19 @@ func TestPaymentService_CreateOrder(t *testing.T) {
 		}
 
 		req := request.CreateOrderRequest{
-			CartID:          "cart-123",
-			CustomerName:    "John Doe",
-			CustomerEmail:   "john@example.com",
-			CustomerPhone:   "+1234567890",
-			ShippingAddress: "123 Test St",
+			CartID:               "cart-123",
+			CustomerName:         "John Doe",
+			CustomerEmail:        "john@example.com",
+			CustomerPhone:        "+1234567890",
+			ShippingAddress:      "123 Test St",
+			ShippingCityName:     "Jakarta",
+			ShippingProvinceName: "DKI Jakarta",
+			ShippingDistrictName: "Kebayoran Baru",
+			ShippingPostalCode:   "12190",
+			ShippingCourier:      "jne",
+			ShippingService:      "REG",
+			ShippingCost:         10000,
+			TotalWeight:          1000,
 		}
 
 		mockCartRepo.EXPECT().GetCartWithItems("cart-123").Return(emptyCart, nil)
@@ -143,11 +167,19 @@ func TestPaymentService_CreateOrder(t *testing.T) {
 
 		cart := createTestCartWithItems()
 		req := request.CreateOrderRequest{
-			CartID:          "cart-123",
-			CustomerName:    "John Doe",
-			CustomerEmail:   "john@example.com",
-			CustomerPhone:   "+1234567890",
-			ShippingAddress: "123 Test St",
+			CartID:               "cart-123",
+			CustomerName:         "John Doe",
+			CustomerEmail:        "john@example.com",
+			CustomerPhone:        "+1234567890",
+			ShippingAddress:      "123 Test St",
+			ShippingCityName:     "Jakarta",
+			ShippingProvinceName: "DKI Jakarta",
+			ShippingDistrictName: "Kebayoran Baru",
+			ShippingPostalCode:   "12190",
+			ShippingCourier:      "jne",
+			ShippingService:      "REG",
+			ShippingCost:         10000,
+			TotalWeight:          1000,
 		}
 
 		mockCartRepo.EXPECT().GetCartWithItems("cart-123").Return(cart, nil)
@@ -1192,13 +1224,16 @@ func createTestOrder() *entity.Order {
 		CustomerEmail:         "john@example.com",
 		CustomerPhone:         "+1234567890",
 		ShippingStreetAddress: "123 Test St",
-		ShippingCity:          "",
-		ShippingProvince:      "",
-		ShippingPostalCode:    "",
+		ShippingCity:          "Jakarta",
+		ShippingProvince:      "DKI Jakarta",
+		ShippingDistrict:      "Kebayoran Baru",
+		ShippingPostalCode:    "12190",
+		ShippingCourier:       "jne",
+		ShippingService:       "REG",
 		ShippingCountry:       "Indonesia",
 		Subtotal:              250.0,
 		DiscountAmount:        0.0,
-		ShippingCost:          0.0,
+		ShippingCost:          10000.0,
 		TotalAmount:           250.0,
 		Currency:              "IDR",
 		OrderStatus:           "pending",
@@ -1305,11 +1340,19 @@ func TestPaymentService_CreateOrder_ErrorCases(t *testing.T) {
 			CartItems: []entity.CartItem{}, // Empty cart
 		}
 		req := request.CreateOrderRequest{
-			CartID:          "cart-123",
-			CustomerName:    "John Doe",
-			CustomerEmail:   "john@example.com",
-			CustomerPhone:   "+1234567890",
-			ShippingAddress: "123 Test St",
+			CartID:               "cart-123",
+			CustomerName:         "John Doe",
+			CustomerEmail:        "john@example.com",
+			CustomerPhone:        "+1234567890",
+			ShippingAddress:      "123 Test St",
+			ShippingCityName:     "Jakarta",
+			ShippingProvinceName: "DKI Jakarta",
+			ShippingDistrictName: "Kebayoran Baru",
+			ShippingPostalCode:   "12190",
+			ShippingCourier:      "jne",
+			ShippingService:      "REG",
+			ShippingCost:         10000,
+			TotalWeight:          1000,
 		}
 
 		mockCartRepo.EXPECT().GetCartWithItems("cart-123").Return(emptyCart, nil)
@@ -1334,11 +1377,19 @@ func TestPaymentService_CreateOrder_ErrorCases(t *testing.T) {
 		service := createTestPaymentService(mockPaymentRepo, mockCartRepo, mockSnapClient)
 
 		req := request.CreateOrderRequest{
-			CartID:          "cart-123",
-			CustomerName:    "John Doe",
-			CustomerEmail:   "john@example.com",
-			CustomerPhone:   "+1234567890",
-			ShippingAddress: "123 Test St",
+			CartID:               "cart-123",
+			CustomerName:         "John Doe",
+			CustomerEmail:        "john@example.com",
+			CustomerPhone:        "+1234567890",
+			ShippingAddress:      "123 Test St",
+			ShippingCityName:     "Jakarta",
+			ShippingProvinceName: "DKI Jakarta",
+			ShippingDistrictName: "Kebayoran Baru",
+			ShippingPostalCode:   "12190",
+			ShippingCourier:      "jne",
+			ShippingService:      "REG",
+			ShippingCost:         10000,
+			TotalWeight:          1000,
 		}
 
 		mockCartRepo.EXPECT().GetCartWithItems("cart-123").Return(nil, errors.New("cart not found"))
@@ -1364,11 +1415,19 @@ func TestPaymentService_CreateOrder_ErrorCases(t *testing.T) {
 
 		cart := createTestCartWithItems()
 		req := request.CreateOrderRequest{
-			CartID:          "cart-123",
-			CustomerName:    "John Doe",
-			CustomerEmail:   "john@example.com",
-			CustomerPhone:   "+1234567890",
-			ShippingAddress: "123 Test St",
+			CartID:               "cart-123",
+			CustomerName:         "John Doe",
+			CustomerEmail:        "john@example.com",
+			CustomerPhone:        "+1234567890",
+			ShippingAddress:      "123 Test St",
+			ShippingCityName:     "Jakarta",
+			ShippingProvinceName: "DKI Jakarta",
+			ShippingDistrictName: "Kebayoran Baru",
+			ShippingPostalCode:   "12190",
+			ShippingCourier:      "jne",
+			ShippingService:      "REG",
+			ShippingCost:         10000,
+			TotalWeight:          1000,
 		}
 
 		mockCartRepo.EXPECT().GetCartWithItems("cart-123").Return(cart, nil)

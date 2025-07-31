@@ -30,8 +30,9 @@ type OrderResponse struct {
 	CustomerEmail               string              `json:"customer_email"`
 	CustomerPhone               string              `json:"customer_phone"`
 	ShippingAddress             string              `json:"shipping_address"`
-	ShippingCityID              string              `json:"shipping_city_id"`
-	ShippingProvinceID          string              `json:"shipping_province_id"`
+	ShippingCityName            string              `json:"shipping_city_name"`
+	ShippingProvinceName        string              `json:"shipping_province_name"`
+	ShippingDistrictName        string              `json:"shipping_district_name"`
 	ShippingPostalCode          string              `json:"shipping_postal_code"`
 	Subtotal                    float64             `json:"subtotal"`
 	DiscountAmount              float64             `json:"discount_amount"`

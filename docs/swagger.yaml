@@ -161,15 +161,17 @@ definitions:
         type: string
       shipping_address:
         type: string
-      shipping_city_id:
+      shipping_city_name:
         type: string
       shipping_cost:
         type: number
       shipping_courier:
         type: string
+      shipping_district_name:
+        type: string
       shipping_postal_code:
         type: string
-      shipping_province_id:
+      shipping_province_name:
         type: string
       shipping_service:
         type: string
@@ -181,11 +183,12 @@ definitions:
     - customer_name
     - customer_phone
     - shipping_address
-    - shipping_city_id
+    - shipping_city_name
     - shipping_cost
     - shipping_courier
+    - shipping_district_name
     - shipping_postal_code
-    - shipping_province_id
+    - shipping_province_name
     - shipping_service
     - total_weight
     type: object
@@ -301,13 +304,15 @@ definitions:
         type: string
       shipping_address:
         type: string
-      shipping_city_id:
+      shipping_city_name:
         type: string
       shipping_cost:
         type: number
+      shipping_district_name:
+        type: string
       shipping_postal_code:
         type: string
-      shipping_province_id:
+      shipping_province_name:
         type: string
       source_channel:
         type: string
