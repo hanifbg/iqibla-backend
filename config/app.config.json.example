@@ -18,7 +18,7 @@
     },
     "shipping": {
         "rajaongkir_api_key": "your_rajaongkir_api_key",
-        "rajaongkir_base_url": "https://api.rajaongkir.com/starter"
+        "rajaongkir_base_url": "https://rajaongkir.komerce.id/api/v1"
     },
     "base_url": "http://localhost:8080",
     "http_timeout": 30

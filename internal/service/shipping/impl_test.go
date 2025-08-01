@@ -22,11 +22,11 @@ func createTestShippingService(rajaOngkirClient RajaOngkirClientInterface) *Ship
 func createTestProvinces() []response.RajaOngkirProvince {
 	return []response.RajaOngkirProvince{
 		{
-			ProvinceID: "1",
+			ProvinceID: 1,
 			Province:   "Bali",
 		},
 		{
-			ProvinceID: "2",
+			ProvinceID: 2,
 			Province:   "Bangka Belitung",
 		},
 	}
@@ -36,20 +36,40 @@ func createTestProvinces() []response.RajaOngkirProvince {
 func createTestCities() []response.RajaOngkirCity {
 	return []response.RajaOngkirCity{
 		{
-			CityID:     "1",
-			ProvinceID: "1",
+			CityID:     1,
+			ProvinceID: 1,
 			Province:   "Bali",
 			Type:       "Kabupaten",
 			CityName:   "Badung",
 			PostalCode: "80351",
 		},
 		{
-			CityID:     "2",
-			ProvinceID: "1",
+			CityID:     2,
+			ProvinceID: 1,
 			Province:   "Bali",
 			Type:       "Kota",
 			CityName:   "Denpasar",
 			PostalCode: "80111",
+		},
+	}
+}
+
+// Helper function to create test district data
+func createTestDistricts() []response.RajaOngkirDistrict {
+	return []response.RajaOngkirDistrict{
+		{
+			DistrictID:   1,
+			CityID:       575,
+			City:         "Jakarta Barat",
+			DistrictName: "Cengkareng",
+			Type:         "Kecamatan",
+		},
+		{
+			DistrictID:   2,
+			CityID:       575,
+			City:         "Jakarta Barat",
+			DistrictName: "Grogol Petamburan",
+			Type:         "Kecamatan",
 		},
 	}
 }
@@ -138,7 +158,7 @@ func TestShippingService_GetProvinces(t *testing.T) {
 		req := request.GetProvincesRequest{ID: "1"}
 		expectedProvinces := []response.RajaOngkirProvince{
 			{
-				ProvinceID: "1",
+				ProvinceID: 1,
 				Province:   "Bali",
 			},
 		}
@@ -245,8 +265,8 @@ func TestShippingService_GetCities(t *testing.T) {
 		req := request.GetCitiesRequest{ProvinceID: "1", ID: "1"}
 		expectedCities := []response.RajaOngkirCity{
 			{
-				CityID:     "1",
-				ProvinceID: "1",
+				CityID:     1,
+				ProvinceID: 1,
 				Province:   "Bali",
 				Type:       "Kabupaten",
 				CityName:   "Badung",
@@ -482,5 +502,74 @@ func TestNewShippingService(t *testing.T) {
 
 		assert.NotNil(t, service)
 		assert.Equal(t, mockRajaOngkirClient, service.rajaOngkirClient)
+	})
+}
+
+func TestShippingService_GetDistricts(t *testing.T) {
+	t.Run("Success - Get districts with city ID", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		mockRajaOngkirClient := mocks.NewMockRajaOngkirClientInterface(ctrl)
+		service := createTestShippingService(mockRajaOngkirClient)
+
+		req := request.GetDistrictsRequest{
+			CityID: "575",
+		}
+
+		districts := createTestDistricts()
+		mockRajaOngkirClient.EXPECT().GetDistricts("575").Return(districts, nil)
+
+		result, err := service.GetDistricts(req)
+
+		assert.NoError(t, err)
+		assert.NotNil(t, result)
+		assert.Equal(t, 2, len(result))
+		assert.Equal(t, "1", result[0].DistrictID)
+		assert.Equal(t, "Cengkareng", result[0].DistrictName)
+		assert.Equal(t, "575", result[0].CityID)
+		assert.Equal(t, "Jakarta Barat", result[0].City)
+	})
+
+	t.Run("Error - Failed to get districts", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		mockRajaOngkirClient := mocks.NewMockRajaOngkirClientInterface(ctrl)
+		service := createTestShippingService(mockRajaOngkirClient)
+
+		req := request.GetDistrictsRequest{
+			CityID: "575",
+		}
+
+		expectedError := errors.New("failed to get districts from RajaOngkir API")
+		mockRajaOngkirClient.EXPECT().GetDistricts("575").Return(nil, expectedError)
+
+		result, err := service.GetDistricts(req)
+
+		assert.Error(t, err)
+		assert.Equal(t, expectedError, err)
+		assert.Nil(t, result)
+	})
+
+	t.Run("Error - Empty city ID", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		mockRajaOngkirClient := mocks.NewMockRajaOngkirClientInterface(ctrl)
+		service := createTestShippingService(mockRajaOngkirClient)
+
+		req := request.GetDistrictsRequest{
+			CityID: "",
+		}
+
+		expectedError := errors.New("city_id is required")
+		mockRajaOngkirClient.EXPECT().GetDistricts("").Return(nil, expectedError)
+
+		result, err := service.GetDistricts(req)
+
+		assert.Error(t, err)
+		assert.Equal(t, expectedError, err)
+		assert.Nil(t, result)
 	})
 }

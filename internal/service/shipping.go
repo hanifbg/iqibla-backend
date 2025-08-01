@@ -8,5 +8,6 @@ import (
 type ShippingService interface {
 	GetProvinces(req request.GetProvincesRequest) ([]response.ProvinceResponse, error)
 	GetCities(req request.GetCitiesRequest) ([]response.CityResponse, error)
+	GetDistricts(req request.GetDistrictsRequest) ([]response.DistrictResponse, error)
 	CalculateShippingCost(req request.CalculateShippingRequest) ([]response.ShippingCostResponse, error)
 }

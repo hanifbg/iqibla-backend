@@ -1,19 +1,20 @@
 package request
 
 type CreateOrderRequest struct {
-	CartID             string  `json:"cart_id" validate:"required"`
-	CustomerName       string  `json:"customer_name" validate:"required"`
-	CustomerEmail      string  `json:"customer_email" validate:"required,email"`
-	CustomerPhone      string  `json:"customer_phone" validate:"required"`
-	ShippingAddress    string  `json:"shipping_address" validate:"required"`
-	ShippingCityID     string  `json:"shipping_city_id" validate:"required"`
-	ShippingProvinceID string  `json:"shipping_province_id" validate:"required"`
-	ShippingPostalCode string  `json:"shipping_postal_code" validate:"required"`
-	ShippingCourier    string  `json:"shipping_courier" validate:"required"`
-	ShippingService    string  `json:"shipping_service" validate:"required"`
-	ShippingCost       float64 `json:"shipping_cost" validate:"required"`
-	TotalWeight        int     `json:"total_weight" validate:"required"`
-	Notes              string  `json:"notes,omitempty"`
+	CartID               string  `json:"cart_id" validate:"required"`
+	CustomerName         string  `json:"customer_name" validate:"required"`
+	CustomerEmail        string  `json:"customer_email" validate:"required,email"`
+	CustomerPhone        string  `json:"customer_phone" validate:"required"`
+	ShippingAddress      string  `json:"shipping_address" validate:"required"`
+	ShippingCityName     string  `json:"shipping_city_name" validate:"required"`
+	ShippingProvinceName string  `json:"shipping_province_name" validate:"required"`
+	ShippingDistrictName string  `json:"shipping_district_name" validate:"required"`
+	ShippingPostalCode   string  `json:"shipping_postal_code" validate:"required"`
+	ShippingCourier      string  `json:"shipping_courier" validate:"required"`
+	ShippingService      string  `json:"shipping_service" validate:"required"`
+	ShippingCost         float64 `json:"shipping_cost" validate:"required"`
+	TotalWeight          int     `json:"total_weight" validate:"required"`
+	Notes                string  `json:"notes,omitempty"`
 }
 
 type PaymentNotificationRequest struct {
