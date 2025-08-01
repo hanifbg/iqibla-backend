@@ -24,6 +24,12 @@ type AppConfig struct {
 	BaseURL           string `mapstructure:"base_url"`
 	RajaOngkirAPIKey  string `mapstructure:"rajaongkir_api_key"`
 	RajaOngkirBaseURL string `mapstructure:"rajaongkir_base_url"`
+
+	// RajaOngkir caching configuration
+	RajaOngkirCacheEnabled      bool `mapstructure:"rajaongkir_cache_enabled"`
+	RajaOngkirCacheTTLHours     int  `mapstructure:"rajaongkir_cache_ttl_hours"`
+	RajaOngkirWarmupOnStartup   bool `mapstructure:"rajaongkir_warmup_on_startup"`
+	RajaOngkirWarmupTimeoutSecs int  `mapstructure:"rajaongkir_warmup_timeout_secs"`
 }
 
 var (

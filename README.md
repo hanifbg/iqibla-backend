@@ -44,6 +44,17 @@ A Go web application using the Echo framework for handling e-commerce backend op
      cp config/app.config.json.example config/app.config.json
      ```
    - Update the configuration with your database and Midtrans credentials
+   - Configure RajaOngkir API and caching settings:
+     ```json
+     "shipping": {
+       "rajaongkir_api_key": "your_rajaongkir_api_key",
+       "rajaongkir_base_url": "https://rajaongkir.komerce.id/api/v1",
+       "rajaongkir_cache_enabled": true,
+       "rajaongkir_cache_ttl_hours": 24,
+       "rajaongkir_warmup_on_startup": true,
+       "rajaongkir_warmup_timeout_secs": 30
+     }
+     ```
 
 4. Run the server:
    ```bash
@@ -93,6 +104,16 @@ You should see the message: "Hello, iQibla E-commerce API!"
 - Payment status tracking
 - Payment notification handling
 
+### Shipping
+- Integration with RajaOngkir API for shipping rates
+- In-memory caching of geographic data to reduce API calls
+- Configurable cache TTL and warm-up behavior
+- Support for multiple couriers
+
 ## API Documentation
 
 Swagger documentation is available at `/swagger/index.html` when the server is running.
+
+## Additional Documentation
+
+- [RajaOngkir Caching Implementation](/docs/development/rajaongkir_caching_guide.md) - Details about the RajaOngkir API caching system
