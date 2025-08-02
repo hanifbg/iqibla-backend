@@ -24,7 +24,7 @@ func New(cfg *config.AppConfig, repoWrapper *util.RepoWrapper) (serviceWrapper *
 		ProductService:  product.New(cfg, repoWrapper),
 		CartService:     cart.New(cfg, repoWrapper),
 		PaymentService:  payment.New(cfg, repoWrapper),
-		ShippingService: shipping.New(cfg),
+		ShippingService: shipping.New(cfg, repoWrapper),
 		CategoryService: category.NewCategoryService(repoWrapper.CategoryRepo, repoWrapper.ProductRepo),
 	}
 

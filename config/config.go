@@ -95,6 +95,12 @@ func initConfig() (*AppConfig, error) {
 	finalConfig.HttpTimeout = viper.GetInt("http_timeout")
 	finalConfig.RajaOngkirAPIKey = viper.GetString("shipping.rajaongkir_api_key")
 	finalConfig.RajaOngkirBaseURL = viper.GetString("shipping.rajaongkir_base_url")
+	
+	// Load cache configuration
+	finalConfig.RajaOngkirCacheEnabled = viper.GetBool("shipping.rajaongkir_cache_enabled")
+	finalConfig.RajaOngkirCacheTTLHours = viper.GetInt("shipping.rajaongkir_cache_ttl_hours")
+	finalConfig.RajaOngkirWarmupOnStartup = viper.GetBool("shipping.rajaongkir_warmup_on_startup")
+	finalConfig.RajaOngkirWarmupTimeoutSecs = viper.GetInt("shipping.rajaongkir_warmup_timeout_secs")
 
 	return &finalConfig, nil
 }

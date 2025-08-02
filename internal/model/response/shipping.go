@@ -8,10 +8,7 @@ type ProvinceResponse struct {
 type CityResponse struct {
 	CityID     string `json:"city_id"`
 	ProvinceID string `json:"province_id"`
-	Province   string `json:"province"`
-	Type       string `json:"type"`
 	CityName   string `json:"city_name"`
-	PostalCode string `json:"postal_code"`
 }
 
 type ShippingCostResponse struct {
@@ -57,27 +54,25 @@ type RajaOngkirProvince struct {
 
 type RajaOngkirCity struct {
 	CityID     int    `json:"id"`
-	ProvinceID int    `json:"province_id"`
-	Province   string `json:"province_name"`
-	Type       string `json:"type"`
+	ProvinceID int    `json:"-"` // Not included in API response anymore, will be set from URL
+	Province   string `json:"-"` // Not included in API response anymore
+	Type       string `json:"-"` // Not included in API response anymore
 	CityName   string `json:"name"`
-	PostalCode string `json:"postal_code"`
+	PostalCode string `json:"-"` // Not included in API response anymore
 }
 
 type DistrictResponse struct {
 	DistrictID   string `json:"district_id"`
 	CityID       string `json:"city_id"`
-	City         string `json:"city"`
 	DistrictName string `json:"district_name"`
-	Type         string `json:"type"`
 }
 
 type RajaOngkirDistrict struct {
 	DistrictID   int    `json:"id"`
-	CityID       int    `json:"city_id"`
-	City         string `json:"city_name"`
+	CityID       int    `json:"-"` // Not included in API response anymore
+	City         string `json:"-"` // Not included in API response anymore
 	DistrictName string `json:"name"`
-	Type         string `json:"type"`
+	Type         string `json:"-"` // Not included in API response anymore
 }
 
 type RajaOngkirCost struct {

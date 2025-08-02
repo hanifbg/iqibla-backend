@@ -1,6 +1,7 @@
 package shipping
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/hanifbg/landing_backend/internal/model/request"
@@ -8,11 +9,15 @@ import (
 )
 
 func (s *ShippingService) GetProvinces(req request.GetProvincesRequest) ([]response.ProvinceResponse, error) {
-	provinces, err := s.rajaOngkirClient.GetProvinces(req.ID)
+	// Validate input if necessary
+
+	// Call repository
+	provinces, err := s.shippingRepo.GetProvinces(req.ID)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get provinces: %w", err)
 	}
 
+	// Transform to service response format
 	var result []response.ProvinceResponse
 	for _, province := range provinces {
 		result = append(result, response.ProvinceResponse{
@@ -25,20 +30,21 @@ func (s *ShippingService) GetProvinces(req request.GetProvincesRequest) ([]respo
 }
 
 func (s *ShippingService) GetCities(req request.GetCitiesRequest) ([]response.CityResponse, error) {
-	cities, err := s.rajaOngkirClient.GetCities(req.ProvinceID, req.ID)
+	// Validate input if necessary
+
+	// Call repository
+	cities, err := s.shippingRepo.GetCities(req.ProvinceID, req.ID)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get cities: %w", err)
 	}
 
+	// Transform to service response format
 	var result []response.CityResponse
 	for _, city := range cities {
 		result = append(result, response.CityResponse{
 			CityID:     strconv.Itoa(city.CityID),
 			ProvinceID: strconv.Itoa(city.ProvinceID),
-			Province:   city.Province,
-			Type:       city.Type,
 			CityName:   city.CityName,
-			PostalCode: city.PostalCode,
 		})
 	}
 
@@ -46,7 +52,13 @@ func (s *ShippingService) GetCities(req request.GetCitiesRequest) ([]response.Ci
 }
 
 func (s *ShippingService) GetDistricts(req request.GetDistrictsRequest) ([]response.DistrictResponse, error) {
-	districts, err := s.rajaOngkirClient.GetDistricts(req.CityID)
+	// Validate input
+	if req.CityID == "" {
+		return nil, fmt.Errorf("city ID is required")
+	}
+
+	// Call repository
+	districts, err := s.shippingRepo.GetDistricts(req.CityID)
 	if err != nil {
 		return nil, err
 	}
@@ -55,10 +67,8 @@ func (s *ShippingService) GetDistricts(req request.GetDistrictsRequest) ([]respo
 	for _, district := range districts {
 		result = append(result, response.DistrictResponse{
 			DistrictID:   strconv.Itoa(district.DistrictID),
-			CityID:       strconv.Itoa(district.CityID),
-			City:         district.City,
+			CityID:       req.CityID, // Use the city ID from the request parameter
 			DistrictName: district.DistrictName,
-			Type:         district.Type,
 		})
 	}
 
@@ -66,9 +76,15 @@ func (s *ShippingService) GetDistricts(req request.GetDistrictsRequest) ([]respo
 }
 
 func (s *ShippingService) CalculateShippingCost(req request.CalculateShippingRequest) ([]response.ShippingCostResponse, error) {
-	costs, err := s.rajaOngkirClient.CalculateShippingCost(req.Origin, req.Destination, req.Weight, req.Courier)
+	// Validate input
+	if req.Origin == "" || req.Destination == "" || req.Weight <= 0 || req.Courier == "" {
+		return nil, fmt.Errorf("origin, destination, weight, and courier are required")
+	}
+
+	// Call repository
+	costs, err := s.shippingRepo.CalculateShippingCost(req.Origin, req.Destination, req.Weight, req.Courier)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to calculate shipping cost: %w", err)
 	}
 
 	var result []response.ShippingCostResponse
