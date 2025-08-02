@@ -76,15 +76,10 @@ type RajaOngkirDistrict struct {
 }
 
 type RajaOngkirCost struct {
-	Code  string `json:"code"`
-	Name  string `json:"name"`
-	Costs []struct {
-		Service     string `json:"service"`
-		Description string `json:"description"`
-		Cost        []struct {
-			Value int    `json:"value"`
-			ETD   string `json:"etd"`
-			Note  string `json:"note"`
-		} `json:"cost"`
-	} `json:"costs"`
+	Code        string `json:"code"`
+	Name        string `json:"name"`
+	Service     string `json:"service"`
+	Description string `json:"description"`
+	Cost        int    `json:"cost"`
+	ETD         string `json:"etd"`
 }

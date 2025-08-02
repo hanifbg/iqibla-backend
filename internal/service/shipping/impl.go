@@ -89,16 +89,12 @@ func (s *ShippingService) CalculateShippingCost(req request.CalculateShippingReq
 
 	var result []response.ShippingCostResponse
 	for _, cost := range costs {
-		for _, costDetail := range cost.Costs {
-			for _, costValue := range costDetail.Cost {
-				result = append(result, response.ShippingCostResponse{
-					Service:     costDetail.Service,
-					Description: costDetail.Description,
-					Cost:        float64(costValue.Value),
-					ETD:         costValue.ETD,
-				})
-			}
-		}
+		result = append(result, response.ShippingCostResponse{
+			Service:     cost.Service,
+			Description: cost.Description,
+			Cost:        float64(cost.Cost),
+			ETD:         cost.ETD,
+		})
 	}
 
 	return result, nil

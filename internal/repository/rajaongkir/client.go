@@ -365,13 +365,16 @@ func (r *Repository) CalculateShippingCost(origin, destination string, weight in
 		}
 	}
 
-	requestURL := fmt.Sprintf("%s/checkout/cost", r.baseURL)
+	requestURL := fmt.Sprintf("%s/calculate/district/domestic-cost", r.baseURL)
 
 	formData := url.Values{}
 	formData.Add("origin", origin)
 	formData.Add("destination", destination)
 	formData.Add("weight", strconv.Itoa(weight))
-	formData.Add("courier", courier)
+	formData.Add("courier", strings.ToLower(courier)) // Ensure courier is lowercase
+
+	fmt.Printf("🌐 API REQUEST: POST %s with origin=%s, destination=%s, weight=%d, courier=%s\n",
+		requestURL, origin, destination, weight, strings.ToLower(courier))
 
 	req, err := http.NewRequest("POST", requestURL, strings.NewReader(formData.Encode()))
 	if err != nil {
@@ -384,6 +387,8 @@ func (r *Repository) CalculateShippingCost(origin, destination string, weight in
 	req.Header.Set("key", r.apiKey)
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
+	fmt.Printf("🌐 API CALL: Calculating shipping cost from %s to %s (weight: %dg, courier: %s)\n", origin, destination, weight, courier)
+
 	resp, err := r.client.Do(req)
 	if err != nil {
 		return nil, &repository.ShippingError{
@@ -394,9 +399,12 @@ func (r *Repository) CalculateShippingCost(origin, destination string, weight in
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
+		// Read the response body for more detailed error information
+		body, _ := io.ReadAll(resp.Body)
+		fmt.Printf("❌ API ERROR: Status %d, Response: %s\n", resp.StatusCode, string(body))
 		return nil, &repository.ShippingError{
 			Operation: "CalculateShippingCost.InvalidStatusCode",
-			Err:       fmt.Errorf("received non-200 status code: %d", resp.StatusCode),
+			Err:       fmt.Errorf("received non-200 status code: %d, response: %s", resp.StatusCode, string(body)),
 		}
 	}
 
@@ -407,6 +415,8 @@ func (r *Repository) CalculateShippingCost(origin, destination string, weight in
 			Err:       err,
 		}
 	}
+
+	fmt.Printf("📝 API RESPONSE: %s\n", string(body))
 
 	var result struct {
 		Meta struct {

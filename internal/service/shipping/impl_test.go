@@ -69,48 +69,20 @@ func createTestDistricts() []response.RajaOngkirDistrict {
 func createTestShippingCosts() []response.RajaOngkirCost {
 	return []response.RajaOngkirCost{
 		{
-			Code: "jne",
-			Name: "Jalur Nugraha Ekakurir (JNE)",
-			Costs: []struct {
-				Service     string `json:"service"`
-				Description string `json:"description"`
-				Cost        []struct {
-					Value int    `json:"value"`
-					ETD   string `json:"etd"`
-					Note  string `json:"note"`
-				} `json:"cost"`
-			}{
-				{
-					Service:     "REG",
-					Description: "Layanan Reguler",
-					Cost: []struct {
-						Value int    `json:"value"`
-						ETD   string `json:"etd"`
-						Note  string `json:"note"`
-					}{
-						{
-							Value: 15000,
-							ETD:   "1-2",
-							Note:  "",
-						},
-					},
-				},
-				{
-					Service:     "OKE",
-					Description: "Ongkos Kirim Ekonomis",
-					Cost: []struct {
-						Value int    `json:"value"`
-						ETD   string `json:"etd"`
-						Note  string `json:"note"`
-					}{
-						{
-							Value: 12000,
-							ETD:   "2-3",
-							Note:  "",
-						},
-					},
-				},
-			},
+			Code:        "jne",
+			Name:        "Jalur Nugraha Ekakurir (JNE)",
+			Service:     "REG",
+			Description: "Layanan Reguler",
+			Cost:        15000,
+			ETD:         "1-2",
+		},
+		{
+			Code:        "jne",
+			Name:        "Jalur Nugraha Ekakurir (JNE)",
+			Service:     "OKE",
+			Description: "Ongkos Kirim Ekonomis",
+			Cost:        12000,
+			ETD:         "2-3",
 		},
 	}
 }
@@ -357,41 +329,23 @@ func TestShippingService_CalculateShippingCost(t *testing.T) {
 			Courier:     "jne",
 		}
 
-		// Create test data with multiple cost values for one service
+		// Create test data with multiple shipping options
 		multipleCosts := []response.RajaOngkirCost{
 			{
-				Code: "jne",
-				Name: "Jalur Nugraha Ekakurir (JNE)",
-				Costs: []struct {
-					Service     string `json:"service"`
-					Description string `json:"description"`
-					Cost        []struct {
-						Value int    `json:"value"`
-						ETD   string `json:"etd"`
-						Note  string `json:"note"`
-					} `json:"cost"`
-				}{
-					{
-						Service:     "REG",
-						Description: "Layanan Reguler",
-						Cost: []struct {
-							Value int    `json:"value"`
-							ETD   string `json:"etd"`
-							Note  string `json:"note"`
-						}{
-							{
-								Value: 15000,
-								ETD:   "1-2",
-								Note:  "",
-							},
-							{
-								Value: 18000,
-								ETD:   "1-1",
-								Note:  "Express",
-							},
-						},
-					},
-				},
+				Code:        "jne",
+				Name:        "Jalur Nugraha Ekakurir (JNE)",
+				Service:     "REG",
+				Description: "Layanan Reguler",
+				Cost:        15000,
+				ETD:         "1-2",
+			},
+			{
+				Code:        "jne",
+				Name:        "Jalur Nugraha Ekakurir (JNE)",
+				Service:     "YES",
+				Description: "Yakin Esok Sampai",
+				Cost:        18000,
+				ETD:         "1-1",
 			},
 		}
 
@@ -400,10 +354,10 @@ func TestShippingService_CalculateShippingCost(t *testing.T) {
 		result, err := service.CalculateShippingCost(req)
 
 		assert.NoError(t, err)
-		assert.Len(t, result, 2) // Two cost values for REG service
+		assert.Len(t, result, 2) // Two shipping options
 		assert.Equal(t, "REG", result[0].Service)
 		assert.Equal(t, float64(15000), result[0].Cost)
-		assert.Equal(t, "REG", result[1].Service)
+		assert.Equal(t, "YES", result[1].Service)
 		assert.Equal(t, float64(18000), result[1].Cost)
 	})
 

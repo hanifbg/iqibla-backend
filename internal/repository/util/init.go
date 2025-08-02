@@ -24,8 +24,7 @@ func New(cfg *config.AppConfig) (repoWrapper *RepoWrapper, err error) {
 	dbConnection, err = db.Init(cfg)
 	if err != nil {
 		log.Printf("Warning: Database initialization failed: %v", err)
-		// Continue without database to allow cache testing
-		dbConnection = nil
+		return nil, err
 	}
 
 	// Initialize RajaOngkir repository with caching configuration
