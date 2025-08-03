@@ -7,14 +7,15 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/hanifbg/landing_backend/internal/model/request"
 	"github.com/hanifbg/landing_backend/internal/model/response"
-	"github.com/hanifbg/landing_backend/internal/service/shipping/mocks"
+	"github.com/hanifbg/landing_backend/internal/repository"
+	repoMocks "github.com/hanifbg/landing_backend/internal/repository/mocks"
 	"github.com/stretchr/testify/assert"
 )
 
 // Helper function to create a test shipping service
-func createTestShippingService(rajaOngkirClient RajaOngkirClientInterface) *ShippingService {
+func createTestShippingService(mockRepo repository.ShippingRepository) *ShippingService {
 	return &ShippingService{
-		rajaOngkirClient: rajaOngkirClient,
+		shippingRepo: mockRepo,
 	}
 }
 
@@ -38,18 +39,12 @@ func createTestCities() []response.RajaOngkirCity {
 		{
 			CityID:     1,
 			ProvinceID: 1,
-			Province:   "Bali",
-			Type:       "Kabupaten",
 			CityName:   "Badung",
-			PostalCode: "80351",
 		},
 		{
 			CityID:     2,
 			ProvinceID: 1,
-			Province:   "Bali",
-			Type:       "Kota",
 			CityName:   "Denpasar",
-			PostalCode: "80111",
 		},
 	}
 }
@@ -60,16 +55,12 @@ func createTestDistricts() []response.RajaOngkirDistrict {
 		{
 			DistrictID:   1,
 			CityID:       575,
-			City:         "Jakarta Barat",
 			DistrictName: "Cengkareng",
-			Type:         "Kecamatan",
 		},
 		{
 			DistrictID:   2,
 			CityID:       575,
-			City:         "Jakarta Barat",
 			DistrictName: "Grogol Petamburan",
-			Type:         "Kecamatan",
 		},
 	}
 }
@@ -78,48 +69,20 @@ func createTestDistricts() []response.RajaOngkirDistrict {
 func createTestShippingCosts() []response.RajaOngkirCost {
 	return []response.RajaOngkirCost{
 		{
-			Code: "jne",
-			Name: "Jalur Nugraha Ekakurir (JNE)",
-			Costs: []struct {
-				Service     string `json:"service"`
-				Description string `json:"description"`
-				Cost        []struct {
-					Value int    `json:"value"`
-					ETD   string `json:"etd"`
-					Note  string `json:"note"`
-				} `json:"cost"`
-			}{
-				{
-					Service:     "REG",
-					Description: "Layanan Reguler",
-					Cost: []struct {
-						Value int    `json:"value"`
-						ETD   string `json:"etd"`
-						Note  string `json:"note"`
-					}{
-						{
-							Value: 15000,
-							ETD:   "1-2",
-							Note:  "",
-						},
-					},
-				},
-				{
-					Service:     "OKE",
-					Description: "Ongkos Kirim Ekonomis",
-					Cost: []struct {
-						Value int    `json:"value"`
-						ETD   string `json:"etd"`
-						Note  string `json:"note"`
-					}{
-						{
-							Value: 12000,
-							ETD:   "2-3",
-							Note:  "",
-						},
-					},
-				},
-			},
+			Code:        "jne",
+			Name:        "Jalur Nugraha Ekakurir (JNE)",
+			Service:     "REG",
+			Description: "Layanan Reguler",
+			Cost:        15000,
+			ETD:         "1-2",
+		},
+		{
+			Code:        "jne",
+			Name:        "Jalur Nugraha Ekakurir (JNE)",
+			Service:     "OKE",
+			Description: "Ongkos Kirim Ekonomis",
+			Cost:        12000,
+			ETD:         "2-3",
 		},
 	}
 }
@@ -130,13 +93,13 @@ func TestShippingService_GetProvinces(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		mockRajaOngkirClient := mocks.NewMockRajaOngkirClientInterface(ctrl)
-		service := createTestShippingService(mockRajaOngkirClient)
+		mockShippingRepo := repoMocks.NewMockShippingRepository(ctrl)
+		service := createTestShippingService(mockShippingRepo)
 
 		req := request.GetProvincesRequest{}
 		expectedProvinces := createTestProvinces()
 
-		mockRajaOngkirClient.EXPECT().GetProvinces("").Return(expectedProvinces, nil)
+		mockShippingRepo.EXPECT().GetProvinces("").Return(expectedProvinces, nil)
 
 		result, err := service.GetProvinces(req)
 
@@ -152,8 +115,8 @@ func TestShippingService_GetProvinces(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		mockRajaOngkirClient := mocks.NewMockRajaOngkirClientInterface(ctrl)
-		service := createTestShippingService(mockRajaOngkirClient)
+		mockShippingRepo := repoMocks.NewMockShippingRepository(ctrl)
+		service := createTestShippingService(mockShippingRepo)
 
 		req := request.GetProvincesRequest{ID: "1"}
 		expectedProvinces := []response.RajaOngkirProvince{
@@ -163,7 +126,7 @@ func TestShippingService_GetProvinces(t *testing.T) {
 			},
 		}
 
-		mockRajaOngkirClient.EXPECT().GetProvinces("1").Return(expectedProvinces, nil)
+		mockShippingRepo.EXPECT().GetProvinces("1").Return(expectedProvinces, nil)
 
 		result, err := service.GetProvinces(req)
 
@@ -177,13 +140,13 @@ func TestShippingService_GetProvinces(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		mockRajaOngkirClient := mocks.NewMockRajaOngkirClientInterface(ctrl)
-		service := createTestShippingService(mockRajaOngkirClient)
+		mockShippingRepo := repoMocks.NewMockShippingRepository(ctrl)
+		service := createTestShippingService(mockShippingRepo)
 
 		req := request.GetProvincesRequest{}
 		emptyProvinces := []response.RajaOngkirProvince{}
 
-		mockRajaOngkirClient.EXPECT().GetProvinces("").Return(emptyProvinces, nil)
+		mockShippingRepo.EXPECT().GetProvinces("").Return(emptyProvinces, nil)
 
 		result, err := service.GetProvinces(req)
 
@@ -195,19 +158,19 @@ func TestShippingService_GetProvinces(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		mockRajaOngkirClient := mocks.NewMockRajaOngkirClientInterface(ctrl)
-		service := createTestShippingService(mockRajaOngkirClient)
+		mockShippingRepo := repoMocks.NewMockShippingRepository(ctrl)
+		service := createTestShippingService(mockShippingRepo)
 
 		req := request.GetProvincesRequest{}
-		expectedError := errors.New("RajaOngkir API error")
+		repoError := errors.New("RajaOngkir API error")
 
-		mockRajaOngkirClient.EXPECT().GetProvinces("").Return(nil, expectedError)
+		mockShippingRepo.EXPECT().GetProvinces("").Return(nil, repoError)
 
 		result, err := service.GetProvinces(req)
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
-		assert.Equal(t, expectedError, err)
+		assert.Contains(t, err.Error(), "RajaOngkir API error")
 	})
 }
 
@@ -217,13 +180,13 @@ func TestShippingService_GetCities(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		mockRajaOngkirClient := mocks.NewMockRajaOngkirClientInterface(ctrl)
-		service := createTestShippingService(mockRajaOngkirClient)
+		mockShippingRepo := repoMocks.NewMockShippingRepository(ctrl)
+		service := createTestShippingService(mockShippingRepo)
 
 		req := request.GetCitiesRequest{}
 		expectedCities := createTestCities()
 
-		mockRajaOngkirClient.EXPECT().GetCities("", "").Return(expectedCities, nil)
+		mockShippingRepo.EXPECT().GetCities("", "").Return(expectedCities, nil)
 
 		result, err := service.GetCities(req)
 
@@ -239,13 +202,13 @@ func TestShippingService_GetCities(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		mockRajaOngkirClient := mocks.NewMockRajaOngkirClientInterface(ctrl)
-		service := createTestShippingService(mockRajaOngkirClient)
+		mockShippingRepo := repoMocks.NewMockShippingRepository(ctrl)
+		service := createTestShippingService(mockShippingRepo)
 
 		req := request.GetCitiesRequest{ProvinceID: "1"}
 		expectedCities := createTestCities()
 
-		mockRajaOngkirClient.EXPECT().GetCities("1", "").Return(expectedCities, nil)
+		mockShippingRepo.EXPECT().GetCities("1", "").Return(expectedCities, nil)
 
 		result, err := service.GetCities(req)
 
@@ -259,22 +222,19 @@ func TestShippingService_GetCities(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		mockRajaOngkirClient := mocks.NewMockRajaOngkirClientInterface(ctrl)
-		service := createTestShippingService(mockRajaOngkirClient)
+		mockShippingRepo := repoMocks.NewMockShippingRepository(ctrl)
+		service := createTestShippingService(mockShippingRepo)
 
 		req := request.GetCitiesRequest{ProvinceID: "1", ID: "1"}
 		expectedCities := []response.RajaOngkirCity{
 			{
 				CityID:     1,
 				ProvinceID: 1,
-				Province:   "Bali",
-				Type:       "Kabupaten",
 				CityName:   "Badung",
-				PostalCode: "80351",
 			},
 		}
 
-		mockRajaOngkirClient.EXPECT().GetCities("1", "1").Return(expectedCities, nil)
+		mockShippingRepo.EXPECT().GetCities("1", "1").Return(expectedCities, nil)
 
 		result, err := service.GetCities(req)
 
@@ -288,13 +248,13 @@ func TestShippingService_GetCities(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		mockRajaOngkirClient := mocks.NewMockRajaOngkirClientInterface(ctrl)
-		service := createTestShippingService(mockRajaOngkirClient)
+		mockShippingRepo := repoMocks.NewMockShippingRepository(ctrl)
+		service := createTestShippingService(mockShippingRepo)
 
 		req := request.GetCitiesRequest{}
 		emptyCities := []response.RajaOngkirCity{}
 
-		mockRajaOngkirClient.EXPECT().GetCities("", "").Return(emptyCities, nil)
+		mockShippingRepo.EXPECT().GetCities("", "").Return(emptyCities, nil)
 
 		result, err := service.GetCities(req)
 
@@ -306,19 +266,19 @@ func TestShippingService_GetCities(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		mockRajaOngkirClient := mocks.NewMockRajaOngkirClientInterface(ctrl)
-		service := createTestShippingService(mockRajaOngkirClient)
+		mockShippingRepo := repoMocks.NewMockShippingRepository(ctrl)
+		service := createTestShippingService(mockShippingRepo)
 
 		req := request.GetCitiesRequest{ProvinceID: "1"}
-		expectedError := errors.New("RajaOngkir API error")
+		repoError := errors.New("RajaOngkir API error")
 
-		mockRajaOngkirClient.EXPECT().GetCities("1", "").Return(nil, expectedError)
+		mockShippingRepo.EXPECT().GetCities("1", "").Return(nil, repoError)
 
 		result, err := service.GetCities(req)
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
-		assert.Equal(t, expectedError, err)
+		assert.Contains(t, err.Error(), "RajaOngkir API error")
 	})
 }
 
@@ -328,8 +288,8 @@ func TestShippingService_CalculateShippingCost(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		mockRajaOngkirClient := mocks.NewMockRajaOngkirClientInterface(ctrl)
-		service := createTestShippingService(mockRajaOngkirClient)
+		mockShippingRepo := repoMocks.NewMockShippingRepository(ctrl)
+		service := createTestShippingService(mockShippingRepo)
 
 		req := request.CalculateShippingRequest{
 			Origin:      "501",
@@ -339,7 +299,7 @@ func TestShippingService_CalculateShippingCost(t *testing.T) {
 		}
 		expectedCosts := createTestShippingCosts()
 
-		mockRajaOngkirClient.EXPECT().CalculateShippingCost("501", "114", 1000, "jne").Return(expectedCosts, nil)
+		mockShippingRepo.EXPECT().CalculateShippingCost("501", "114", 1000, "jne").Return(expectedCosts, nil)
 
 		result, err := service.CalculateShippingCost(req)
 
@@ -359,8 +319,8 @@ func TestShippingService_CalculateShippingCost(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		mockRajaOngkirClient := mocks.NewMockRajaOngkirClientInterface(ctrl)
-		service := createTestShippingService(mockRajaOngkirClient)
+		mockShippingRepo := repoMocks.NewMockShippingRepository(ctrl)
+		service := createTestShippingService(mockShippingRepo)
 
 		req := request.CalculateShippingRequest{
 			Origin:      "501",
@@ -369,53 +329,35 @@ func TestShippingService_CalculateShippingCost(t *testing.T) {
 			Courier:     "jne",
 		}
 
-		// Create test data with multiple cost values for one service
+		// Create test data with multiple shipping options
 		multipleCosts := []response.RajaOngkirCost{
 			{
-				Code: "jne",
-				Name: "Jalur Nugraha Ekakurir (JNE)",
-				Costs: []struct {
-					Service     string `json:"service"`
-					Description string `json:"description"`
-					Cost        []struct {
-						Value int    `json:"value"`
-						ETD   string `json:"etd"`
-						Note  string `json:"note"`
-					} `json:"cost"`
-				}{
-					{
-						Service:     "REG",
-						Description: "Layanan Reguler",
-						Cost: []struct {
-							Value int    `json:"value"`
-							ETD   string `json:"etd"`
-							Note  string `json:"note"`
-						}{
-							{
-								Value: 15000,
-								ETD:   "1-2",
-								Note:  "",
-							},
-							{
-								Value: 18000,
-								ETD:   "1-1",
-								Note:  "Express",
-							},
-						},
-					},
-				},
+				Code:        "jne",
+				Name:        "Jalur Nugraha Ekakurir (JNE)",
+				Service:     "REG",
+				Description: "Layanan Reguler",
+				Cost:        15000,
+				ETD:         "1-2",
+			},
+			{
+				Code:        "jne",
+				Name:        "Jalur Nugraha Ekakurir (JNE)",
+				Service:     "YES",
+				Description: "Yakin Esok Sampai",
+				Cost:        18000,
+				ETD:         "1-1",
 			},
 		}
 
-		mockRajaOngkirClient.EXPECT().CalculateShippingCost("501", "114", 1000, "jne").Return(multipleCosts, nil)
+		mockShippingRepo.EXPECT().CalculateShippingCost("501", "114", 1000, "jne").Return(multipleCosts, nil)
 
 		result, err := service.CalculateShippingCost(req)
 
 		assert.NoError(t, err)
-		assert.Len(t, result, 2) // Two cost values for REG service
+		assert.Len(t, result, 2) // Two shipping options
 		assert.Equal(t, "REG", result[0].Service)
 		assert.Equal(t, float64(15000), result[0].Cost)
-		assert.Equal(t, "REG", result[1].Service)
+		assert.Equal(t, "YES", result[1].Service)
 		assert.Equal(t, float64(18000), result[1].Cost)
 	})
 
@@ -423,8 +365,8 @@ func TestShippingService_CalculateShippingCost(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		mockRajaOngkirClient := mocks.NewMockRajaOngkirClientInterface(ctrl)
-		service := createTestShippingService(mockRajaOngkirClient)
+		mockShippingRepo := repoMocks.NewMockShippingRepository(ctrl)
+		service := createTestShippingService(mockShippingRepo)
 
 		req := request.CalculateShippingRequest{
 			Origin:      "501",
@@ -434,7 +376,7 @@ func TestShippingService_CalculateShippingCost(t *testing.T) {
 		}
 		emptyCosts := []response.RajaOngkirCost{}
 
-		mockRajaOngkirClient.EXPECT().CalculateShippingCost("501", "114", 1000, "invalid").Return(emptyCosts, nil)
+		mockShippingRepo.EXPECT().CalculateShippingCost("501", "114", 1000, "invalid").Return(emptyCosts, nil)
 
 		result, err := service.CalculateShippingCost(req)
 
@@ -446,8 +388,8 @@ func TestShippingService_CalculateShippingCost(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		mockRajaOngkirClient := mocks.NewMockRajaOngkirClientInterface(ctrl)
-		service := createTestShippingService(mockRajaOngkirClient)
+		mockShippingRepo := repoMocks.NewMockShippingRepository(ctrl)
+		service := createTestShippingService(mockShippingRepo)
 
 		req := request.CalculateShippingRequest{
 			Origin:      "501",
@@ -455,23 +397,23 @@ func TestShippingService_CalculateShippingCost(t *testing.T) {
 			Weight:      1000,
 			Courier:     "jne",
 		}
-		expectedError := errors.New("RajaOngkir API error")
+		repoError := errors.New("RajaOngkir API error")
 
-		mockRajaOngkirClient.EXPECT().CalculateShippingCost("501", "114", 1000, "jne").Return(nil, expectedError)
+		mockShippingRepo.EXPECT().CalculateShippingCost("501", "114", 1000, "jne").Return(nil, repoError)
 
 		result, err := service.CalculateShippingCost(req)
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
-		assert.Equal(t, expectedError, err)
+		assert.Contains(t, err.Error(), "RajaOngkir API error")
 	})
 
 	t.Run("Error - Invalid weight", func(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		mockRajaOngkirClient := mocks.NewMockRajaOngkirClientInterface(ctrl)
-		service := createTestShippingService(mockRajaOngkirClient)
+		mockShippingRepo := repoMocks.NewMockShippingRepository(ctrl)
+		service := createTestShippingService(mockShippingRepo)
 
 		req := request.CalculateShippingRequest{
 			Origin:      "501",
@@ -479,15 +421,15 @@ func TestShippingService_CalculateShippingCost(t *testing.T) {
 			Weight:      0,
 			Courier:     "jne",
 		}
-		expectedError := errors.New("invalid weight")
 
-		mockRajaOngkirClient.EXPECT().CalculateShippingCost("501", "114", 0, "jne").Return(nil, expectedError)
+		// The test should just check that we get an error message about requirements
+		// We don't need to mock the repository call since validation happens before that
 
 		result, err := service.CalculateShippingCost(req)
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
-		assert.Equal(t, expectedError, err)
+		assert.Contains(t, err.Error(), "required")
 	})
 }
 
@@ -497,11 +439,11 @@ func TestNewShippingService(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		mockRajaOngkirClient := mocks.NewMockRajaOngkirClientInterface(ctrl)
-		service := createTestShippingService(mockRajaOngkirClient)
+		mockRepo := repoMocks.NewMockShippingRepository(ctrl)
+		service := createTestShippingService(mockRepo)
 
 		assert.NotNil(t, service)
-		assert.Equal(t, mockRajaOngkirClient, service.rajaOngkirClient)
+		assert.Equal(t, mockRepo, service.shippingRepo)
 	})
 }
 
@@ -510,15 +452,15 @@ func TestShippingService_GetDistricts(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		mockRajaOngkirClient := mocks.NewMockRajaOngkirClientInterface(ctrl)
-		service := createTestShippingService(mockRajaOngkirClient)
+		mockRepo := repoMocks.NewMockShippingRepository(ctrl)
+		service := createTestShippingService(mockRepo)
 
 		req := request.GetDistrictsRequest{
 			CityID: "575",
 		}
 
 		districts := createTestDistricts()
-		mockRajaOngkirClient.EXPECT().GetDistricts("575").Return(districts, nil)
+		mockRepo.EXPECT().GetDistricts("575").Return(districts, nil)
 
 		result, err := service.GetDistricts(req)
 
@@ -528,22 +470,21 @@ func TestShippingService_GetDistricts(t *testing.T) {
 		assert.Equal(t, "1", result[0].DistrictID)
 		assert.Equal(t, "Cengkareng", result[0].DistrictName)
 		assert.Equal(t, "575", result[0].CityID)
-		assert.Equal(t, "Jakarta Barat", result[0].City)
 	})
 
 	t.Run("Error - Failed to get districts", func(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		mockRajaOngkirClient := mocks.NewMockRajaOngkirClientInterface(ctrl)
-		service := createTestShippingService(mockRajaOngkirClient)
+		mockRepo := repoMocks.NewMockShippingRepository(ctrl)
+		service := createTestShippingService(mockRepo)
 
 		req := request.GetDistrictsRequest{
 			CityID: "575",
 		}
 
 		expectedError := errors.New("failed to get districts from RajaOngkir API")
-		mockRajaOngkirClient.EXPECT().GetDistricts("575").Return(nil, expectedError)
+		mockRepo.EXPECT().GetDistricts("575").Return(nil, expectedError)
 
 		result, err := service.GetDistricts(req)
 
@@ -556,20 +497,18 @@ func TestShippingService_GetDistricts(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		mockRajaOngkirClient := mocks.NewMockRajaOngkirClientInterface(ctrl)
-		service := createTestShippingService(mockRajaOngkirClient)
+		mockRepo := repoMocks.NewMockShippingRepository(ctrl)
+		service := createTestShippingService(mockRepo)
 
 		req := request.GetDistrictsRequest{
 			CityID: "",
 		}
 
-		expectedError := errors.New("city_id is required")
-		mockRajaOngkirClient.EXPECT().GetDistricts("").Return(nil, expectedError)
-
+		// The service should check for empty city ID before calling the repository
 		result, err := service.GetDistricts(req)
 
 		assert.Error(t, err)
-		assert.Equal(t, expectedError, err)
+		assert.Contains(t, err.Error(), "city ID is required")
 		assert.Nil(t, result)
 	})
 }
