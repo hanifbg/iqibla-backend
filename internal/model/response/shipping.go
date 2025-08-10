@@ -18,6 +18,29 @@ type ShippingCostResponse struct {
 	ETD         string  `json:"etd"`
 }
 
+// ValidateAWBResponse represents the response for AWB validation
+type ValidateAWBResponse struct {
+	ID            string `json:"id"`
+	InvoiceNumber string `json:"invoice_number"`
+	AWBNumber     string `json:"awb_number"`
+	Courier       string `json:"courier"`
+	IsValidated   bool   `json:"is_validated"`
+	Message       string `json:"message"`
+}
+
+// RajaOngkirTrackingResponse represents the response from RajaOngkir tracking API
+type RajaOngkirTrackingResponse struct {
+	Meta RajaOngkirTrackingMeta `json:"meta"`
+	Data interface{}            `json:"data"`
+}
+
+// RajaOngkirTrackingMeta represents the meta information in tracking response
+type RajaOngkirTrackingMeta struct {
+	Message string `json:"message"`
+	Code    int    `json:"code"`
+	Status  string `json:"status"`
+}
+
 type KomerceProvinceResponse struct {
 	Meta Meta                 `json:"meta"`
 	Data []RajaOngkirProvince `json:"data"`

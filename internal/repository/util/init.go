@@ -11,11 +11,12 @@ import (
 )
 
 type RepoWrapper struct {
-	ProductRepo  repository.ProductRepository
-	CartRepo     repository.CartRepository
-	PaymentRepo  repository.PaymentRepository
-	CategoryRepo repository.CategoryRepository
-	ShippingRepo repository.ShippingRepository
+	ProductRepo     repository.ProductRepository
+	CartRepo        repository.CartRepository
+	PaymentRepo     repository.PaymentRepository
+	CategoryRepo    repository.CategoryRepository
+	ShippingRepo    repository.ShippingRepository
+	AWBTrackingRepo repository.AWBTrackingRepository
 }
 
 func New(cfg *config.AppConfig) (repoWrapper *RepoWrapper, err error) {
@@ -40,11 +41,12 @@ func New(cfg *config.AppConfig) (repoWrapper *RepoWrapper, err error) {
 	})
 
 	repoWrapper = &RepoWrapper{
-		ProductRepo:  dbConnection,
-		CartRepo:     dbConnection,
-		PaymentRepo:  dbConnection,
-		CategoryRepo: dbConnection,
-		ShippingRepo: rajaOngkirRepo,
+		ProductRepo:     dbConnection,
+		CartRepo:        dbConnection,
+		PaymentRepo:     dbConnection,
+		CategoryRepo:    dbConnection,
+		ShippingRepo:    rajaOngkirRepo,
+		AWBTrackingRepo: db.NewAWBTrackingRepository(dbConnection.DB),
 	}
 
 	return repoWrapper, nil

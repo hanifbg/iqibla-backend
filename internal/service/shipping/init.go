@@ -8,11 +8,13 @@ import (
 )
 
 type ShippingService struct {
-	shippingRepo repository.ShippingRepository
+	ShippingRepo    repository.ShippingRepository
+	AWBTrackingRepo repository.AWBTrackingRepository
 }
 
 func New(cfg *config.AppConfig, repoWrapper *util.RepoWrapper) service.ShippingService {
 	return &ShippingService{
-		shippingRepo: repoWrapper.ShippingRepo,
+		ShippingRepo:    repoWrapper.ShippingRepo,
+		AWBTrackingRepo: repoWrapper.AWBTrackingRepo,
 	}
 }

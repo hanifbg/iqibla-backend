@@ -25,6 +25,10 @@ type ShippingRepository interface {
 	// weight is in grams
 	// courier is the shipping provider code (e.g., "jne", "pos", "tiki")
 	CalculateShippingCost(origin, destination string, weight int, courier string) ([]response.RajaOngkirCost, error)
+
+	// ValidateAWB validates AWB number with RajaOngkir API
+	// Returns tracking data if AWB is valid, error if invalid
+	ValidateAWB(awbNumber, courier string, lastPhoneNumber *string) (*response.RajaOngkirTrackingResponse, error)
 }
 
 // ShippingError represents errors from the shipping repository

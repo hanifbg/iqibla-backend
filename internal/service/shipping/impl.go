@@ -1,9 +1,13 @@
 package shipping
 
 import (
+	"encoding/json"
 	"fmt"
 	"strconv"
+	"time"
 
+	"github.com/google/uuid"
+	"github.com/hanifbg/landing_backend/internal/model/entity"
 	"github.com/hanifbg/landing_backend/internal/model/request"
 	"github.com/hanifbg/landing_backend/internal/model/response"
 )
@@ -12,7 +16,7 @@ func (s *ShippingService) GetProvinces(req request.GetProvincesRequest) ([]respo
 	// Validate input if necessary
 
 	// Call repository
-	provinces, err := s.shippingRepo.GetProvinces(req.ID)
+	provinces, err := s.ShippingRepo.GetProvinces(req.ID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get provinces: %w", err)
 	}
@@ -33,7 +37,7 @@ func (s *ShippingService) GetCities(req request.GetCitiesRequest) ([]response.Ci
 	// Validate input if necessary
 
 	// Call repository
-	cities, err := s.shippingRepo.GetCities(req.ProvinceID, req.ID)
+	cities, err := s.ShippingRepo.GetCities(req.ProvinceID, req.ID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get cities: %w", err)
 	}
@@ -58,7 +62,7 @@ func (s *ShippingService) GetDistricts(req request.GetDistrictsRequest) ([]respo
 	}
 
 	// Call repository
-	districts, err := s.shippingRepo.GetDistricts(req.CityID)
+	districts, err := s.ShippingRepo.GetDistricts(req.CityID)
 	if err != nil {
 		return nil, err
 	}
@@ -82,7 +86,7 @@ func (s *ShippingService) CalculateShippingCost(req request.CalculateShippingReq
 	}
 
 	// Call repository
-	costs, err := s.shippingRepo.CalculateShippingCost(req.Origin, req.Destination, req.Weight, req.Courier)
+	costs, err := s.ShippingRepo.CalculateShippingCost(req.Origin, req.Destination, req.Weight, req.Courier)
 	if err != nil {
 		return nil, fmt.Errorf("failed to calculate shipping cost: %w", err)
 	}
@@ -98,4 +102,79 @@ func (s *ShippingService) CalculateShippingCost(req request.CalculateShippingReq
 	}
 
 	return result, nil
+}
+
+// ValidateAndSaveAWB validates AWB number with RajaOngkir and saves it to database
+func (s *ShippingService) ValidateAndSaveAWB(req request.ValidateAWBRequest) (*response.ValidateAWBResponse, error) {
+	// Step 1: Validate that the invoice number exists
+	order, err := s.AWBTrackingRepo.GetOrderByInvoiceNumber(req.InvoiceNumber)
+	if err != nil {
+		return nil, fmt.Errorf("failed to validate invoice number: %w", err)
+	}
+
+	// Step 2: Convert order ID to UUID
+	orderID, err := uuid.Parse(order.ID)
+	if err != nil {
+		return nil, fmt.Errorf("invalid order ID format: %w", err)
+	}
+
+	// Step 3: Check if AWB already exists for this order and courier
+	existingAWB, err := s.AWBTrackingRepo.GetAWBTrackingByAWBNumber(req.AWBNumber, req.Courier)
+	if err != nil {
+		return nil, fmt.Errorf("failed to check existing AWB: %w", err)
+	}
+	if existingAWB != nil {
+		return nil, fmt.Errorf("AWB number '%s' for courier '%s' already exists", req.AWBNumber, req.Courier)
+	}
+
+	// Step 4: Validate AWB with RajaOngkir API
+	trackingData, err := s.ShippingRepo.ValidateAWB(req.AWBNumber, req.Courier, req.LastPhoneNumber)
+	if err != nil {
+		return &response.ValidateAWBResponse{
+			AWBNumber:     req.AWBNumber,
+			Courier:       req.Courier,
+			InvoiceNumber: req.InvoiceNumber,
+			IsValidated:   false,
+			Message:       "Invalid AWB number",
+		}, nil // Return successful response with validation failure
+	}
+
+	// Step 5: Extract tracking data from API response
+	var parsedTrackingData *entity.TrackingData
+	if trackingData != nil && trackingData.Data != nil {
+		// Parse the tracking data - this depends on the actual structure from RajaOngkir
+		trackingBytes, _ := json.Marshal(trackingData.Data)
+		var trackingInfo entity.TrackingData
+		if json.Unmarshal(trackingBytes, &trackingInfo) == nil {
+			parsedTrackingData = &trackingInfo
+		}
+	}
+
+	// Step 6: Create AWB tracking record
+	awbTracking := &entity.AWBTracking{
+		ID:              uuid.New(),
+		OrderID:         orderID,
+		AWBNumber:       req.AWBNumber,
+		Courier:         req.Courier,
+		LastPhoneNumber: req.LastPhoneNumber,
+		IsValidated:     true,
+		TrackingData:    parsedTrackingData,
+		CreatedAt:       time.Now(),
+		UpdatedAt:       time.Now(),
+	}
+
+	// Step 7: Save to database
+	if err := s.AWBTrackingRepo.CreateAWBTracking(awbTracking); err != nil {
+		return nil, fmt.Errorf("failed to save AWB tracking: %w", err)
+	}
+
+	// Step 8: Return success response
+	return &response.ValidateAWBResponse{
+		ID:            awbTracking.ID.String(),
+		InvoiceNumber: req.InvoiceNumber,
+		AWBNumber:     req.AWBNumber,
+		Courier:       req.Courier,
+		IsValidated:   true,
+		Message:       "AWB number validated and saved successfully",
+	}, nil
 }

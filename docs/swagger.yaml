@@ -216,6 +216,39 @@ definitions:
     - quantity
     - variant_id
     type: object
+  request.ValidateAWBRequest:
+    properties:
+      awb_number:
+        description: AWB tracking number from courier
+        type: string
+      courier:
+        description: Courier service name
+        enum:
+        - jne
+        - jnt
+        - ninja
+        - tiki
+        - pos
+        - anteraja
+        - sicepat
+        - sap
+        - lion
+        - wahana
+        - first
+        - ide
+        type: string
+      invoice_number:
+        description: Invoice number to link AWB to an order
+        type: string
+      last_phone_number:
+        description: Last 5 digits of recipient's phone number (only required for
+          JNE courier)
+        type: string
+    required:
+    - awb_number
+    - courier
+    - invoice_number
+    type: object
   response.CartItemResponse:
     properties:
       id:
@@ -797,6 +830,43 @@ paths:
       summary: Get a product by ID
       tags:
       - products
+  /api/v1/shipping/awb/validate:
+    post:
+      consumes:
+      - application/json
+      description: Validate AWB number with RajaOngkir API and save to database for
+        specific invoice number. The last_phone_number parameter is only required
+        for JNE courier and should contain the last 5 digits of the recipient's phone
+        number.
+      parameters:
+      - description: 'Validate AWB request. Note: last_phone_number is only for JNE
+          courier (last 5 digits of recipient''s phone number)'
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.ValidateAWBRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: AWB number validated and saved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request, validation failed, or invalid AWB number
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Server error during validation or saving
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Validate and save AWB number
+      tags:
+      - shipping
   /api/v1/shipping/cities/{province_id}:
     get:
       description: Get cities by province ID and/or city ID
