@@ -2,16 +2,17 @@ package shipping
 
 import (
 	"github.com/hanifbg/landing_backend/config"
+	"github.com/hanifbg/landing_backend/internal/repository"
+	"github.com/hanifbg/landing_backend/internal/repository/util"
 	"github.com/hanifbg/landing_backend/internal/service"
 )
 
 type ShippingService struct {
-	rajaOngkirClient RajaOngkirClientInterface
+	shippingRepo repository.ShippingRepository
 }
 
-func New(cfg *config.AppConfig) service.ShippingService {
-	rajaOngkirClient := NewRajaOngkirClient(cfg.RajaOngkirAPIKey, cfg.RajaOngkirBaseURL)
+func New(cfg *config.AppConfig, repoWrapper *util.RepoWrapper) service.ShippingService {
 	return &ShippingService{
-		rajaOngkirClient: rajaOngkirClient,
+		shippingRepo: repoWrapper.ShippingRepo,
 	}
 }

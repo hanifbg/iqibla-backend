@@ -55,10 +55,7 @@ Get cities by province ID and optionally filter by city ID.
         {
           "city_id": "1",
           "province_id": "1",
-          "province": "Bali",
-          "type": "Kabupaten",
-          "city_name": "Badung",
-          "postal_code": "80351"
+          "city_name": "Badung"
         },
         ...
       ]
@@ -92,9 +89,7 @@ Get districts by city ID.
         {
           "district_id": "1",
           "city_id": "575",
-          "city": "Jakarta Barat",
-          "district_name": "Cengkareng",
-          "type": "Kecamatan"
+          "district_name": "Cengkareng"
         },
         ...
       ]

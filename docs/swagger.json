@@ -700,7 +700,7 @@
         },
         "/api/v1/shipping/cost": {
             "post": {
-                "description": "Calculate shipping cost based on origin, destination, weight, and courier",
+                "description": "Calculate shipping cost based on origin, destination, weight, and courier. Returns available shipping options with costs and estimated delivery times.",
                 "consumes": [
                     "application/json"
                 ],
@@ -724,24 +724,41 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Shipping cost calculated successfully",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/response.CalculateShippingResponse"
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Bad Request - Invalid input parameters",
                         "schema": {
                             "type": "object",
-                            "additionalProperties": true
+                            "properties": {
+                                "error": {
+                                    "type": "string",
+                                    "example": "Failed to calculate shipping cost"
+                                },
+                                "message": {
+                                    "type": "string",
+                                    "example": "origin, destination, weight, and courier are required"
+                                }
+                            }
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
                             "type": "object",
-                            "additionalProperties": true
+                            "properties": {
+                                "error": {
+                                    "type": "string",
+                                    "example": "Failed to calculate shipping cost"
+                                },
+                                "message": {
+                                    "type": "string",
+                                    "example": "failed to calculate shipping cost: CalculateShippingCost.InvalidStatusCode: received non-200 status code: 404"
+                                }
+                            }
                         }
                     }
                 }
@@ -1351,6 +1368,48 @@
                 },
                 "updated_at": {
                     "type": "string"
+                }
+            }
+        },
+        "response.ShippingCostResponse": {
+            "type": "object",
+            "properties": {
+                "service": {
+                    "type": "string",
+                    "description": "Shipping service type (e.g., REG, YES, OKE)",
+                    "example": "CTC"
+                },
+                "description": {
+                    "type": "string",
+                    "description": "Service description",
+                    "example": "JNE City Courier"
+                },
+                "cost": {
+                    "type": "number",
+                    "description": "Shipping cost in IDR",
+                    "example": 10000
+                },
+                "etd": {
+                    "type": "string",
+                    "description": "Estimated time of delivery",
+                    "example": "1 day"
+                }
+            }
+        },
+        "response.CalculateShippingResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.ShippingCostResponse"
+                    },
+                    "description": "List of shipping cost options"
+                },
+                "message": {
+                    "type": "string",
+                    "description": "Response message",
+                    "example": "Shipping cost calculated successfully"
                 }
             }
         }

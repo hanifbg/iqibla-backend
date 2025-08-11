@@ -45,6 +45,7 @@ func main() {
 	serv, err := servInit.New(cfg, repo)
 	if err != nil {
 		fmt.Println("GOT ERROR serv Init", err)
+		// Continue to see cache logs even if service init fails
 	}
 
 	// Initialize Echo
@@ -71,7 +72,9 @@ func main() {
 		serverAddr = fmt.Sprintf(":%d", cfg.AppPort)
 	}
 	go func() {
+		fmt.Println("Starting server on", serverAddr)
 		if err := e.Start(serverAddr); err != nil && err != http.ErrServerClosed {
+			fmt.Printf("Server error: %v\n", err)
 			e.Logger.Fatal("shutting down the server")
 		}
 	}()

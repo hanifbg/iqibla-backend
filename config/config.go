@@ -24,11 +24,17 @@ type AppConfig struct {
 	BaseURL           string `mapstructure:"base_url"`
 	RajaOngkirAPIKey  string `mapstructure:"rajaongkir_api_key"`
 	RajaOngkirBaseURL string `mapstructure:"rajaongkir_base_url"`
-	SMTPHost          string `mapstructure:"smtp_host"`
-	SMTPPort          int    `mapstructure:"smtp_port"`
-	SMTPUsername      string `mapstructure:"smtp_username"`
-	SMTPPassword      string `mapstructure:"smtp_password"`
-	SMTPFrom          string `mapstructure:"smtp_from"`
+
+	// RajaOngkir caching configuration
+	RajaOngkirCacheEnabled      bool   `mapstructure:"rajaongkir_cache_enabled"`
+	RajaOngkirCacheTTLHours     int    `mapstructure:"rajaongkir_cache_ttl_hours"`
+	RajaOngkirWarmupOnStartup   bool   `mapstructure:"rajaongkir_warmup_on_startup"`
+	RajaOngkirWarmupTimeoutSecs int    `mapstructure:"rajaongkir_warmup_timeout_secs"`
+	SMTPHost                    string `mapstructure:"smtp_host"`
+	SMTPPort                    int    `mapstructure:"smtp_port"`
+	SMTPUsername                string `mapstructure:"smtp_username"`
+	SMTPPassword                string `mapstructure:"smtp_password"`
+	SMTPFrom                    string `mapstructure:"smtp_from"`
 }
 
 var (
@@ -99,6 +105,12 @@ func initConfig() (*AppConfig, error) {
 	finalConfig.HttpTimeout = viper.GetInt("http_timeout")
 	finalConfig.RajaOngkirAPIKey = viper.GetString("shipping.rajaongkir_api_key")
 	finalConfig.RajaOngkirBaseURL = viper.GetString("shipping.rajaongkir_base_url")
+
+	// Load cache configuration
+	finalConfig.RajaOngkirCacheEnabled = viper.GetBool("shipping.rajaongkir_cache_enabled")
+	finalConfig.RajaOngkirCacheTTLHours = viper.GetInt("shipping.rajaongkir_cache_ttl_hours")
+	finalConfig.RajaOngkirWarmupOnStartup = viper.GetBool("shipping.rajaongkir_warmup_on_startup")
+	finalConfig.RajaOngkirWarmupTimeoutSecs = viper.GetInt("shipping.rajaongkir_warmup_timeout_secs")
 
 	return &finalConfig, nil
 }
