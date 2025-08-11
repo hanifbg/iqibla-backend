@@ -78,6 +78,7 @@ func (s *PaymentService) CreateOrder(req request.CreateOrderRequest) (*response.
 		orderItem := entity.OrderItem{
 			ID:               uuid.New().String(),
 			OrderID:          orderID,
+			ProductVariant:   cartItem.ProductVariant,
 			ProductVariantID: cartItem.ProductVariantID,
 			Quantity:         cartItem.Quantity,
 			PriceAtPurchase:  cartItem.ProductVariant.Price,
