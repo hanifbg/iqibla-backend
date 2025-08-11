@@ -24,6 +24,11 @@ type AppConfig struct {
 	BaseURL           string `mapstructure:"base_url"`
 	RajaOngkirAPIKey  string `mapstructure:"rajaongkir_api_key"`
 	RajaOngkirBaseURL string `mapstructure:"rajaongkir_base_url"`
+	SMTPHost          string `mapstructure:"smtp_host"`
+	SMTPPort          int    `mapstructure:"smtp_port"`
+	SMTPUsername      string `mapstructure:"smtp_username"`
+	SMTPPassword      string `mapstructure:"smtp_password"`
+	SMTPFrom          string `mapstructure:"smtp_from"`
 }
 
 var (
@@ -70,6 +75,11 @@ func initConfig() (*AppConfig, error) {
 		finalConfig.IsProduction = getEnvBoolOrDefault("IS_PRODUCTION", false)
 		finalConfig.RajaOngkirAPIKey = getEnvOrDefault("RAJAONGKIR_API_KEY", "")
 		finalConfig.RajaOngkirBaseURL = getEnvOrDefault("RAJAONGKIR_BASE_URL", "")
+		finalConfig.SMTPHost = getEnvOrDefault("SMTP_HOST", "")
+		finalConfig.SMTPPort = getEnvIntOrDefault("SMTP_PORT", 0)
+		finalConfig.SMTPUsername = getEnvOrDefault("SMTP_USERNAME", "")
+		finalConfig.SMTPPassword = getEnvOrDefault("SMTP_PASSWORD", "")
+		finalConfig.SMTPFrom = getEnvOrDefault("SMTP_FROM", "")
 		return &finalConfig, nil
 	}
 

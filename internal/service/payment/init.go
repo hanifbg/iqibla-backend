@@ -18,11 +18,13 @@ type PaymentService struct {
 	cartRepo    repository.CartRepository
 	snapClient  SnapClientInterface
 	baseURL     string
+	mailer      repository.Mailer
 }
 
 // New creates a PaymentService following the same pattern as other services
 func New(cfg *config.AppConfig, repo *util.RepoWrapper) *PaymentService {
-	return NewPaymentServiceWithMidtrans(repo.PaymentRepo, repo.CartRepo, cfg.MidtransServerKey, cfg.IsProduction, cfg.BaseURL)
+	return NewPaymentServiceWithMidtrans(repo.PaymentRepo, repo.CartRepo,
+		cfg.MidtransServerKey, cfg.IsProduction, cfg.BaseURL, repo.MailRepo)
 }
 
 func NewPaymentService(paymentRepo repository.PaymentRepository, cartRepo repository.CartRepository, snapClient SnapClientInterface, baseURL string) *PaymentService {
@@ -35,14 +37,15 @@ func NewPaymentService(paymentRepo repository.PaymentRepository, cartRepo reposi
 }
 
 // NewPaymentServiceWithMidtrans creates a PaymentService with a real Midtrans client
-func NewPaymentServiceWithMidtrans(paymentRepo repository.PaymentRepository, cartRepo repository.CartRepository, midtransServerKey string, isProduction bool, baseURL string) *PaymentService {
+func NewPaymentServiceWithMidtrans(paymentRepo repository.PaymentRepository, cartRepo repository.CartRepository,
+	midtransServerKey string, isProduction bool, baseURL string, mailer repository.Mailer) *PaymentService {
 	// Initialize Midtrans client
 	// Set environment based on isProduction flag
 	env := midtrans.Sandbox
 	if isProduction {
 		env = midtrans.Production
 	}
-	
+
 	// Correct way to initialize Snap client according to Midtrans Go SDK documentation
 	var snapClient snap.Client
 	snapClient.New(midtransServerKey, midtrans.EnvironmentType(env))
@@ -52,5 +55,6 @@ func NewPaymentServiceWithMidtrans(paymentRepo repository.PaymentRepository, car
 		cartRepo:    cartRepo,
 		snapClient:  &snapClient,
 		baseURL:     baseURL,
+		mailer:      mailer,
 	}
 }

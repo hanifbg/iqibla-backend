@@ -128,6 +128,11 @@ func (s *PaymentService) CreateOrder(req request.CreateOrderRequest) (*response.
 		TotalAmount: order.TotalAmount,
 	}
 
+	err = s.mailer.SendOrderConfirmation(order)
+	if err != nil {
+		return nil, fmt.Errorf("failed to send order confirmation: %v", err)
+	}
+
 	return orderResponse, nil
 }
 
