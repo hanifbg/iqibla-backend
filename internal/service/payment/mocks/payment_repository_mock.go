@@ -235,3 +235,54 @@ func (mr *MockPaymentRepositoryMockRecorder) UpdatePaymentStatus(paymentID, stat
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatePaymentStatus", reflect.TypeOf((*MockPaymentRepository)(nil).UpdatePaymentStatus), paymentID, status)
 }
+
+// MockMailer is a mock of Mailer interface.
+type MockMailer struct {
+	ctrl     *gomock.Controller
+	recorder *MockMailerMockRecorder
+}
+
+// MockMailerMockRecorder is the mock recorder for MockMailer.
+type MockMailerMockRecorder struct {
+	mock *MockMailer
+}
+
+// NewMockMailer creates a new mock instance.
+func NewMockMailer(ctrl *gomock.Controller) *MockMailer {
+	mock := &MockMailer{ctrl: ctrl}
+	mock.recorder = &MockMailerMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockMailer) EXPECT() *MockMailerMockRecorder {
+	return m.recorder
+}
+
+// Send mocks base method.
+func (m *MockMailer) Send(from, to, subject, body string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Send", from, to, subject, body)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Send indicates an expected call of Send.
+func (mr *MockMailerMockRecorder) Send(from, to, subject, body interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Send", reflect.TypeOf((*MockMailer)(nil).Send), from, to, subject, body)
+}
+
+// SendOrderConfirmation mocks base method.
+func (m *MockMailer) SendOrderConfirmation(order *entity.Order) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SendOrderConfirmation", order)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SendOrderConfirmation indicates an expected call of SendOrderConfirmation.
+func (mr *MockMailerMockRecorder) SendOrderConfirmation(order interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendOrderConfirmation", reflect.TypeOf((*MockMailer)(nil).SendOrderConfirmation), order)
+}

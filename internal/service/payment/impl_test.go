@@ -1289,11 +1289,12 @@ func TestNewPaymentServiceWithMidtrans(t *testing.T) {
 
 		mockPaymentRepo := mocks.NewMockPaymentRepository(ctrl)
 		mockCartRepo := mocks.NewMockCartRepository(ctrl)
+		mockMailer := mocks.NewMockMailer(ctrl)
 		serverKey := "test-server-key"
 		isProduction := false
 
 		// Act
-		service := NewPaymentServiceWithMidtrans(mockPaymentRepo, mockCartRepo, serverKey, isProduction, "http://localhost:8080")
+		service := NewPaymentServiceWithMidtrans(mockPaymentRepo, mockCartRepo, serverKey, isProduction, "http://localhost:8080", mockMailer)
 
 		// Assert
 		assert.NotNil(t, service)
@@ -1309,11 +1310,12 @@ func TestNewPaymentServiceWithMidtrans(t *testing.T) {
 
 		mockPaymentRepo := mocks.NewMockPaymentRepository(ctrl)
 		mockCartRepo := mocks.NewMockCartRepository(ctrl)
+		mockMailer := mocks.NewMockMailer(ctrl)
 		serverKey := "test-server-key"
 		isProduction := true
 
 		// Act
-		service := NewPaymentServiceWithMidtrans(mockPaymentRepo, mockCartRepo, serverKey, isProduction, "http://localhost:8080")
+		service := NewPaymentServiceWithMidtrans(mockPaymentRepo, mockCartRepo, serverKey, isProduction, "http://localhost:8080", mockMailer)
 
 		// Assert
 		assert.NotNil(t, service)
