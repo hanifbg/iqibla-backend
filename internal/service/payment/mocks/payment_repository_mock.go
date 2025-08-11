@@ -274,15 +274,15 @@ func (mr *MockMailerMockRecorder) Send(from, to, subject, body interface{}) *gom
 }
 
 // SendOrderConfirmation mocks base method.
-func (m *MockMailer) SendOrderConfirmation(order *entity.Order) error {
+func (m *MockMailer) SendOrderConfirmation(order *entity.Order, items []entity.OrderItem) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SendOrderConfirmation", order)
+	ret := m.ctrl.Call(m, "SendOrderConfirmation", order, items)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // SendOrderConfirmation indicates an expected call of SendOrderConfirmation.
-func (mr *MockMailerMockRecorder) SendOrderConfirmation(order interface{}) *gomock.Call {
+func (mr *MockMailerMockRecorder) SendOrderConfirmation(order interface{}, items interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendOrderConfirmation", reflect.TypeOf((*MockMailer)(nil).SendOrderConfirmation), order)
 }

@@ -24,7 +24,7 @@ func (m *Mailer) Send(from, to, subject, body string) error {
 }
 
 // SendOrderConfirmation builds the email body from template and sends it to the customer
-func (m *Mailer) SendOrderConfirmation(order *entity.Order) error {
+func (m *Mailer) SendOrderConfirmation(order *entity.Order, items []entity.OrderItem) error {
 	if order == nil {
 		return fmt.Errorf("order is nil")
 	}
@@ -33,13 +33,16 @@ func (m *Mailer) SendOrderConfirmation(order *entity.Order) error {
 	}
 
 	// Build items list
-	items := make([]request.OrderEmailItem, 0, len(order.OrderItems))
-	for _, it := range order.OrderItems {
+	itemsEmail := make([]request.OrderEmailItem, 0, len(order.OrderItems))
+	for _, it := range items {
 		name := ""
 		if it.ProductVariant != nil {
 			name = it.ProductVariant.Name
 		}
-		items = append(items, request.OrderEmailItem{
+		fmt.Println("ProductName:", name)
+		fmt.Println("Quantity:", it.Quantity)
+		fmt.Println("PriceAtPurchase:", it.PriceAtPurchase)
+		itemsEmail = append(itemsEmail, request.OrderEmailItem{
 			ProductName:     name,
 			Quantity:        it.Quantity,
 			PriceAtPurchase: it.PriceAtPurchase,
@@ -50,7 +53,7 @@ func (m *Mailer) SendOrderConfirmation(order *entity.Order) error {
 	data := request.OrderEmailData{
 		CustomerName:          order.CustomerName,
 		OrderNumber:           order.OrderNumber,
-		OrderItems:            items,
+		OrderItems:            itemsEmail,
 		SubtotalAmount:        order.Subtotal,
 		ShippingCost:          order.ShippingCost,
 		TotalAmount:           order.TotalAmount,
@@ -74,6 +77,7 @@ func (m *Mailer) SendOrderConfirmation(order *entity.Order) error {
 	from := getSMTPFrom()
 	subject := fmt.Sprintf("Order Confirmation #%s", order.OrderNumber)
 
+	fmt.Println("from:", from)
 	return m.Send(from, order.CustomerEmail, subject, buf.String())
 }
 

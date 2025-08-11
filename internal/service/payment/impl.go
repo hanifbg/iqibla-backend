@@ -3,6 +3,7 @@ package payment
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/google/uuid"
@@ -128,9 +129,9 @@ func (s *PaymentService) CreateOrder(req request.CreateOrderRequest) (*response.
 		TotalAmount: order.TotalAmount,
 	}
 
-	err = s.mailer.SendOrderConfirmation(order)
+	err = s.mailer.SendOrderConfirmation(order, orderItems)
 	if err != nil {
-		return nil, fmt.Errorf("failed to send order confirmation: %v", err)
+		log.Printf("failed to send order confirmation email: %v", err)
 	}
 
 	return orderResponse, nil

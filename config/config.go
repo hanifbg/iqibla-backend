@@ -112,6 +112,13 @@ func initConfig() (*AppConfig, error) {
 	finalConfig.RajaOngkirWarmupOnStartup = viper.GetBool("shipping.rajaongkir_warmup_on_startup")
 	finalConfig.RajaOngkirWarmupTimeoutSecs = viper.GetInt("shipping.rajaongkir_warmup_timeout_secs")
 
+	//email
+	finalConfig.SMTPHost = viper.GetString("mail.host")
+	finalConfig.SMTPPort = viper.GetInt("mail.port")
+	finalConfig.SMTPUsername = viper.GetString("mail.username")
+	finalConfig.SMTPPassword = viper.GetString("mail.password")
+	finalConfig.SMTPFrom = viper.GetString("mail.sender_email")
+
 	return &finalConfig, nil
 }
 
