@@ -36,6 +36,9 @@ type AppConfig struct {
 	SMTPPassword                string `mapstructure:"smtp_password"`
 	SMTPFrom                    string `mapstructure:"smtp_from"`
 	WhatsappConfig              WhatsappConfig
+	TeleToken                   string `mapstructure:"tele_token"`
+	TeleOrderChatID             int64  `mapstructure:"tele_order_chat_id"`
+	TeleMessageThreadID         int64  `mapstructure:"tele_message_thread_id"`
 }
 
 type WhatsappConfig struct {
@@ -130,6 +133,10 @@ func initConfig() (*AppConfig, error) {
 	finalConfig.WhatsappConfig.Host = viper.GetString("whatsapp.url")
 	finalConfig.WhatsappConfig.Username = viper.GetString("whatsapp.username")
 	finalConfig.WhatsappConfig.Password = viper.GetString("whatsapp.password")
+
+	finalConfig.TeleToken = viper.GetString("telegram.token")
+	finalConfig.TeleOrderChatID = viper.GetInt64("telegram.order_chat_id")
+	finalConfig.TeleMessageThreadID = viper.GetInt64("telegram.message_thread_id")
 
 	return &finalConfig, nil
 }

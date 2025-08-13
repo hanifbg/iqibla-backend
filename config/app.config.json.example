@@ -16,6 +16,11 @@
         "username": "username",
         "password": "password"
     },
+    "telegram": {
+        "token":"token",
+        "order_chat_id": 1,
+        "message_thread_id": 18
+    },
     "mail": {
         "host": "smtp.gmail.com",
         "port": 587,

@@ -20,13 +20,22 @@ type PaymentService struct {
 	baseURL      string
 	mailer       repository.Mailer
 	whatsAppRepo repository.WhatsApp
+	telegramRepo telegramService
+}
+
+type telegramService struct {
+	telegramRepo    repository.TelegramAPI
+	orderChatID     int64
+	messageThreadID int64
+	token           string
 }
 
 // New creates a PaymentService following the same pattern as other services
 func New(cfg *config.AppConfig, repo *util.RepoWrapper) *PaymentService {
 	return NewPaymentServiceWithMidtrans(repo.PaymentRepo, repo.CartRepo,
 		cfg.MidtransServerKey, cfg.IsProduction, cfg.BaseURL,
-		repo.MailRepo, repo.WhatsAppRepo)
+		repo.MailRepo, repo.WhatsAppRepo, repo.TelegramRepo,
+		cfg.TeleToken, cfg.TeleOrderChatID, cfg.TeleMessageThreadID)
 }
 
 func NewPaymentService(paymentRepo repository.PaymentRepository, cartRepo repository.CartRepository, snapClient SnapClientInterface, baseURL string) *PaymentService {
@@ -41,7 +50,8 @@ func NewPaymentService(paymentRepo repository.PaymentRepository, cartRepo reposi
 // NewPaymentServiceWithMidtrans creates a PaymentService with a real Midtrans client
 func NewPaymentServiceWithMidtrans(paymentRepo repository.PaymentRepository, cartRepo repository.CartRepository,
 	midtransServerKey string, isProduction bool, baseURL string,
-	mailer repository.Mailer, whatsapp repository.WhatsApp) *PaymentService {
+	mailer repository.Mailer, whatsapp repository.WhatsApp, tele repository.TelegramAPI,
+	teleToken string, teleOrderChatID int64, teleMessageThreadID int64) *PaymentService {
 	// Initialize Midtrans client
 	// Set environment based on isProduction flag
 	env := midtrans.Sandbox
@@ -60,5 +70,11 @@ func NewPaymentServiceWithMidtrans(paymentRepo repository.PaymentRepository, car
 		baseURL:      baseURL,
 		mailer:       mailer,
 		whatsAppRepo: whatsapp,
+		telegramRepo: telegramService{
+			telegramRepo:    tele,
+			orderChatID:     teleOrderChatID,
+			messageThreadID: teleMessageThreadID,
+			token:           teleToken,
+		},
 	}
 }

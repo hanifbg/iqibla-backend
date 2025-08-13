@@ -22,6 +22,7 @@ type RepoWrapper struct {
 	AWBTrackingRepo repository.AWBTrackingRepository
 	MailRepo        repository.Mailer
 	WhatsAppRepo    repository.WhatsApp
+	TelegramRepo    repository.TelegramAPI
 }
 
 func New(cfg *config.AppConfig) (repoWrapper *RepoWrapper, err error) {
@@ -65,6 +66,7 @@ func New(cfg *config.AppConfig) (repoWrapper *RepoWrapper, err error) {
 		AWBTrackingRepo: db.NewAWBTrackingRepository(dbConnection.DB),
 		MailRepo:        mailer,
 		WhatsAppRepo:    externalRepo.WAApi,
+		TelegramRepo:    externalRepo.TelegramAPI,
 	}
 
 	return repoWrapper, nil
