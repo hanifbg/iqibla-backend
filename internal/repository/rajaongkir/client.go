@@ -436,3 +436,69 @@ func (r *Repository) CalculateShippingCost(origin, destination string, weight in
 
 	return result.Data, nil
 }
+
+// ValidateAWB validates AWB number with RajaOngkir tracking API
+func (r *Repository) ValidateAWB(awbNumber, courier string, lastPhoneNumber *string) (*response.RajaOngkirTrackingResponse, error) {
+	// Build the URL with query parameters
+	endpoint := fmt.Sprintf("%s/track/waybill", r.baseURL)
+	params := url.Values{}
+	params.Add("awb", awbNumber)
+	params.Add("courier", courier)
+
+	if lastPhoneNumber != nil && *lastPhoneNumber != "" {
+		params.Add("last_phone_number", *lastPhoneNumber)
+	}
+
+	fullURL := fmt.Sprintf("%s?%s", endpoint, params.Encode())
+
+	// Create POST request
+	req, err := http.NewRequest("POST", fullURL, nil)
+	if err != nil {
+		return nil, &repository.ShippingError{
+			Operation: "ValidateAWB.CreateRequest",
+			Err:       err,
+		}
+	}
+
+	// Set headers
+	req.Header.Set("key", r.apiKey)
+	req.Header.Set("Content-Type", "application/json")
+
+	// Make the request
+	resp, err := r.client.Do(req)
+	if err != nil {
+		return nil, &repository.ShippingError{
+			Operation: "ValidateAWB.HTTPRequest",
+			Err:       err,
+		}
+	}
+	defer resp.Body.Close()
+
+	// Read response body
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, &repository.ShippingError{
+			Operation: "ValidateAWB.ReadResponse",
+			Err:       err,
+		}
+	}
+
+	// Parse response
+	var result response.RajaOngkirTrackingResponse
+	if err := json.Unmarshal(body, &result); err != nil {
+		return nil, &repository.ShippingError{
+			Operation: "ValidateAWB.ParseResponse",
+			Err:       err,
+		}
+	}
+
+	// Check if the response indicates an error
+	if result.Meta.Code != http.StatusOK {
+		return nil, &repository.ShippingError{
+			Operation: "ValidateAWB.APIError",
+			Err:       fmt.Errorf("invalid AWB: %s", result.Meta.Message),
+		}
+	}
+
+	return &result, nil
+}

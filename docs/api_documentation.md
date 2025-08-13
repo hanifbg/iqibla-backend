@@ -406,6 +406,92 @@ Calculate shipping cost based on origin, destination, weight, and courier.
     }
     ```
 
+### Validate and Save AWB Number
+
+Validate AWB (Air Way Bill) number with RajaOngkir API and save it to database for order tracking.
+
+- **URL**: `/api/v1/shipping/awb/validate`
+- **Method**: `POST`
+- **Request Body**:
+  ```json
+  {
+    "invoice_number": "IQB-2025-00001",
+    "awb_number": "JX3948927748",
+    "courier": "jnt",
+    "last_phone_number": "12345"
+  }
+  ```
+- **Request Body Parameters**:
+  - `invoice_number` (required): Invoice number to link AWB to an order
+  - `awb_number` (required): AWB tracking number from courier
+  - `courier` (required): Courier service name (jne, jnt, ninja, tiki, pos, anteraja, sicepat, sap, lion, wahana, first, ide)
+  - `last_phone_number` (optional): Last 5 digits of recipient's phone number. **Only required for JNE courier** for additional verification (exactly 5 numeric characters)
+- **Success Response** (Valid AWB):
+  - **Code**: 200
+  - **Content**:
+    ```json
+    {
+      "message": "AWB validated and saved successfully",
+      "data": {
+        "id": "46d6774d-22b4-48c9-8705-d26e71f4cf84",
+        "invoice_number": "IQB-2025-00001",
+        "awb_number": "JX3948927748",
+        "courier": "jnt",
+        "is_validated": true,
+        "message": "AWB number validated and saved successfully"
+      }
+    }
+    ```
+- **Success Response** (Invalid AWB):
+  - **Code**: 400
+  - **Content**:
+    ```json
+    {
+      "error": "Invalid AWB number",
+      "message": "Invalid AWB number",
+      "data": {
+        "awb_number": "JX3948927748",
+        "courier": "jnt",
+        "invoice_number": "IQB-2025-00001",
+        "is_validated": false,
+        "message": "Invalid AWB number"
+      }
+    }
+    ```
+- **Error Responses**:
+  - **Code**: 400 (Validation Failed)
+  - **Content**:
+    ```json
+    {
+      "error": "Validation failed",
+      "message": "Key: 'ValidateAWBRequest.LastPhoneNumber' Error:Field validation for 'LastPhoneNumber' failed on the 'len' tag"
+    }
+    ```
+  - **Code**: 400 (Invalid Request)
+  - **Content**:
+    ```json
+    {
+      "error": "Invalid request",
+      "message": "Error details"
+    }
+    ```
+  - **Code**: 500 (Server Error)
+  - **Content**:
+    ```json
+    {
+      "error": "Failed to validate AWB",
+      "message": "Error details"
+    }
+    ```
+
+**Notes**:
+- The endpoint validates the AWB number using RajaOngkir API before saving
+- Each AWB number + courier combination must be unique
+- The invoice number must exist in the system
+- `last_phone_number` is **only required for JNE courier** and must contain exactly the last 5 digits of the recipient's phone number
+- For other couriers (JNT, Ninja, Tiki, etc.), the `last_phone_number` parameter should be omitted
+- The system will return appropriate error messages for duplicate AWB numbers, invalid invoice numbers, or API validation failures
+
 ---
 
 ## Payment APIs

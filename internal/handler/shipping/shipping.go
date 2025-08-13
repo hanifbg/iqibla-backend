@@ -130,3 +130,53 @@ func (h *ApiWrapper) CalculateShippingCost(c echo.Context) error {
 		"data":    costs,
 	})
 }
+
+// ValidateAWB godoc
+// @Summary Validate and save AWB number
+// @Description Validate AWB number with RajaOngkir API and save to database for specific invoice number. The last_phone_number parameter is only required for JNE courier and should contain the last 5 digits of the recipient's phone number.
+// @Tags shipping
+// @Accept json
+// @Produce json
+// @Param request body request.ValidateAWBRequest true "Validate AWB request. Note: last_phone_number is only for JNE courier (last 5 digits of recipient's phone number)"
+// @Success 200 {object} map[string]interface{} "AWB number validated and saved successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid request, validation failed, or invalid AWB number"
+// @Failure 500 {object} map[string]interface{} "Server error during validation or saving"
+// @Router /api/v1/shipping/awb/validate [post]
+func (h *ApiWrapper) ValidateAWB(c echo.Context) error {
+	var req request.ValidateAWBRequest
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"error":   "Invalid request",
+			"message": err.Error(),
+		})
+	}
+
+	if err := c.Validate(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"error":   "Validation failed",
+			"message": err.Error(),
+		})
+	}
+
+	result, err := h.shippingService.ValidateAndSaveAWB(req)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"error":   "Failed to validate AWB",
+			"message": err.Error(),
+		})
+	}
+
+	// If AWB validation failed, return 400 status
+	if !result.IsValidated {
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"error":   "Invalid AWB number",
+			"message": result.Message,
+			"data":    result,
+		})
+	}
+
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"message": "AWB validated and saved successfully",
+		"data":    result,
+	})
+}

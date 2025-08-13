@@ -10,4 +10,5 @@ type ShippingService interface {
 	GetCities(req request.GetCitiesRequest) ([]response.CityResponse, error)
 	GetDistricts(req request.GetDistrictsRequest) ([]response.DistrictResponse, error)
 	CalculateShippingCost(req request.CalculateShippingRequest) ([]response.ShippingCostResponse, error)
+	ValidateAndSaveAWB(req request.ValidateAWBRequest) (*response.ValidateAWBResponse, error)
 }

@@ -666,6 +666,55 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/shipping/awb/validate": {
+            "post": {
+                "description": "Validate AWB number with RajaOngkir API and save to database for specific invoice number. The last_phone_number parameter is only required for JNE courier and should contain the last 5 digits of the recipient's phone number.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "shipping"
+                ],
+                "summary": "Validate and save AWB number",
+                "parameters": [
+                    {
+                        "description": "Validate AWB request. Note: last_phone_number is only for JNE courier (last 5 digits of recipient's phone number)",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.ValidateAWBRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "AWB number validated and saved successfully",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request, validation failed, or invalid AWB number",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Server error during validation or saving",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/shipping/cities/{province_id}": {
             "get": {
                 "description": "Get cities by province ID and/or city ID",
@@ -1057,11 +1106,12 @@ const docTemplate = `{
                 "customer_name",
                 "customer_phone",
                 "shipping_address",
-                "shipping_city_id",
+                "shipping_city_name",
                 "shipping_cost",
                 "shipping_courier",
+                "shipping_district_name",
                 "shipping_postal_code",
-                "shipping_province_id",
+                "shipping_province_name",
                 "shipping_service",
                 "total_weight"
             ],
@@ -1084,7 +1134,7 @@ const docTemplate = `{
                 "shipping_address": {
                     "type": "string"
                 },
-                "shipping_city_id": {
+                "shipping_city_name": {
                     "type": "string"
                 },
                 "shipping_cost": {
@@ -1093,10 +1143,13 @@ const docTemplate = `{
                 "shipping_courier": {
                     "type": "string"
                 },
+                "shipping_district_name": {
+                    "type": "string"
+                },
                 "shipping_postal_code": {
                     "type": "string"
                 },
-                "shipping_province_id": {
+                "shipping_province_name": {
                     "type": "string"
                 },
                 "shipping_service": {
@@ -1138,6 +1191,46 @@ const docTemplate = `{
                     "minimum": 0
                 },
                 "variant_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.ValidateAWBRequest": {
+            "type": "object",
+            "required": [
+                "awb_number",
+                "courier",
+                "invoice_number"
+            ],
+            "properties": {
+                "awb_number": {
+                    "description": "AWB tracking number from courier",
+                    "type": "string"
+                },
+                "courier": {
+                    "description": "Courier service name",
+                    "type": "string",
+                    "enum": [
+                        "jne",
+                        "jnt",
+                        "ninja",
+                        "tiki",
+                        "pos",
+                        "anteraja",
+                        "sicepat",
+                        "sap",
+                        "lion",
+                        "wahana",
+                        "first",
+                        "ide"
+                    ]
+                },
+                "invoice_number": {
+                    "description": "Invoice number to link AWB to an order",
+                    "type": "string"
+                },
+                "last_phone_number": {
+                    "description": "Last 5 digits of recipient's phone number (only required for JNE courier)",
                     "type": "string"
                 }
             }
@@ -1275,16 +1368,19 @@ const docTemplate = `{
                 "shipping_address": {
                     "type": "string"
                 },
-                "shipping_city_id": {
+                "shipping_city_name": {
                     "type": "string"
                 },
                 "shipping_cost": {
                     "type": "number"
                 },
+                "shipping_district_name": {
+                    "type": "string"
+                },
                 "shipping_postal_code": {
                     "type": "string"
                 },
-                "shipping_province_id": {
+                "shipping_province_name": {
                     "type": "string"
                 },
                 "source_channel": {
