@@ -111,7 +111,7 @@ func buildOrderLink(orderID string) string {
 		base = "http://localhost:8080"
 	}
 	// Assuming frontend route to view order details
-	return fmt.Sprintf("%s/orders/%s", base, orderID)
+	return fmt.Sprintf("%s/order-confirmation/%s", base, orderID)
 }
 
 func getSMTPFrom() string {

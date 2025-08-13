@@ -20,8 +20,8 @@ type RepoWrapper struct {
 	CategoryRepo    repository.CategoryRepository
 	ShippingRepo    repository.ShippingRepository
 	AWBTrackingRepo repository.AWBTrackingRepository
-	MailRepo     repository.Mailer
-	WhatsAppRepo repository.WhatsApp
+	MailRepo        repository.Mailer
+	WhatsAppRepo    repository.WhatsApp
 }
 
 func New(cfg *config.AppConfig) (repoWrapper *RepoWrapper, err error) {
@@ -63,8 +63,8 @@ func New(cfg *config.AppConfig) (repoWrapper *RepoWrapper, err error) {
 		CategoryRepo:    dbConnection,
 		ShippingRepo:    rajaOngkirRepo,
 		AWBTrackingRepo: db.NewAWBTrackingRepository(dbConnection.DB),
-		MailRepo:     mailer,
-		WhatsAppRepo: externalRepo.WAApi,
+		MailRepo:        mailer,
+		WhatsAppRepo:    externalRepo.WAApi,
 	}
 
 	return repoWrapper, nil

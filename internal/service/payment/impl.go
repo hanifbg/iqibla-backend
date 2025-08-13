@@ -145,7 +145,7 @@ func (s *PaymentService) CreateOrder(req request.CreateOrderRequest) (*response.
 		CustomerName:          order.CustomerName,
 		OrderNumber:           orderNumber,
 		TotalAmount:           order.TotalAmount,
-		OrderConfirmationLink: fmt.Sprintf("%s/orders/%s", s.baseURL, order.ID),
+		OrderConfirmationLink: fmt.Sprintf("%s/order-confirmation/%s", s.baseURL, order.ID),
 	}
 
 	// Parse the template and execute it with the data
@@ -160,13 +160,13 @@ func (s *PaymentService) CreateOrder(req request.CreateOrderRequest) (*response.
 	}
 
 	// Call the function to send the message if WhatsApp repository is available
-	if s.whatsAppRepo != nil {
-		// Format the phone number correctly for WhatsApp
-		phoneNumber := s.formatPhoneNumberForWhatsApp(order.CustomerPhone)
-		if err := s.whatsAppRepo.SendMessage(phoneNumber, buf.String()); err != nil {
-			log.Printf("failed to send WhatsApp message: %v", err)
-		}
+	//if s.whatsAppRepo != nil {
+	// Format the phone number correctly for WhatsApp
+	phoneNumber := s.formatPhoneNumberForWhatsApp(order.CustomerPhone)
+	if err := s.whatsAppRepo.SendMessage(phoneNumber, buf.String()); err != nil {
+		log.Printf("failed to send WhatsApp message: %v", err)
 	}
+	//}
 	return orderResponse, nil
 }
 
@@ -175,17 +175,17 @@ func (s *PaymentService) CreateOrder(req request.CreateOrderRequest) (*response.
 func (s *PaymentService) formatPhoneNumberForWhatsApp(phoneNumber string) string {
 	// Remove any non-digit characters
 	digitsOnly := regexp.MustCompile(`\D`).ReplaceAllString(phoneNumber, "")
-	
+
 	// If the number starts with 0, replace it with 62 (Indonesia country code)
 	if strings.HasPrefix(digitsOnly, "0") {
 		digitsOnly = "62" + digitsOnly[1:]
 	}
-	
+
 	// If the number doesn't start with 62, add it
 	if !strings.HasPrefix(digitsOnly, "62") {
 		digitsOnly = "62" + digitsOnly
 	}
-	
+
 	// Add the plus sign and WhatsApp suffix
 	return "+" + digitsOnly + "@s.whatsapp.net"
 }
