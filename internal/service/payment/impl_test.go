@@ -19,9 +19,12 @@ import (
 // Helper function to create a test payment service
 func createTestPaymentService(paymentRepo repository.PaymentRepository, cartRepo repository.CartRepository, snapClient SnapClientInterface) *PaymentService {
 	return &PaymentService{
-		paymentRepo: paymentRepo,
-		cartRepo:    cartRepo,
-		snapClient:  snapClient,
+		paymentRepo:  paymentRepo,
+		cartRepo:     cartRepo,
+		snapClient:   snapClient,
+		baseURL:      "http://localhost:8080",
+		mailer:       nil,
+		whatsAppRepo: nil,
 	}
 }
 
@@ -1289,11 +1292,13 @@ func TestNewPaymentServiceWithMidtrans(t *testing.T) {
 
 		mockPaymentRepo := mocks.NewMockPaymentRepository(ctrl)
 		mockCartRepo := mocks.NewMockCartRepository(ctrl)
+		mockMailer := mocks.NewMockMailer(ctrl)
+		mockWhatsApp := mocks.NewMockWhatsApp(ctrl)
 		serverKey := "test-server-key"
 		isProduction := false
 
 		// Act
-		service := NewPaymentServiceWithMidtrans(mockPaymentRepo, mockCartRepo, serverKey, isProduction, "http://localhost:8080")
+		service := NewPaymentServiceWithMidtrans(mockPaymentRepo, mockCartRepo, serverKey, isProduction, "http://localhost:8080", mockMailer, mockWhatsApp)
 
 		// Assert
 		assert.NotNil(t, service)
@@ -1309,11 +1314,13 @@ func TestNewPaymentServiceWithMidtrans(t *testing.T) {
 
 		mockPaymentRepo := mocks.NewMockPaymentRepository(ctrl)
 		mockCartRepo := mocks.NewMockCartRepository(ctrl)
+		mockMailer := mocks.NewMockMailer(ctrl)
+		mockWhatsApp := mocks.NewMockWhatsApp(ctrl)
 		serverKey := "test-server-key"
 		isProduction := true
 
 		// Act
-		service := NewPaymentServiceWithMidtrans(mockPaymentRepo, mockCartRepo, serverKey, isProduction, "http://localhost:8080")
+		service := NewPaymentServiceWithMidtrans(mockPaymentRepo, mockCartRepo, serverKey, isProduction, "http://localhost:8080", mockMailer, mockWhatsApp)
 
 		// Assert
 		assert.NotNil(t, service)

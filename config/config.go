@@ -26,10 +26,22 @@ type AppConfig struct {
 	RajaOngkirBaseURL string `mapstructure:"rajaongkir_base_url"`
 
 	// RajaOngkir caching configuration
-	RajaOngkirCacheEnabled      bool `mapstructure:"rajaongkir_cache_enabled"`
-	RajaOngkirCacheTTLHours     int  `mapstructure:"rajaongkir_cache_ttl_hours"`
-	RajaOngkirWarmupOnStartup   bool `mapstructure:"rajaongkir_warmup_on_startup"`
-	RajaOngkirWarmupTimeoutSecs int  `mapstructure:"rajaongkir_warmup_timeout_secs"`
+	RajaOngkirCacheEnabled      bool   `mapstructure:"rajaongkir_cache_enabled"`
+	RajaOngkirCacheTTLHours     int    `mapstructure:"rajaongkir_cache_ttl_hours"`
+	RajaOngkirWarmupOnStartup   bool   `mapstructure:"rajaongkir_warmup_on_startup"`
+	RajaOngkirWarmupTimeoutSecs int    `mapstructure:"rajaongkir_warmup_timeout_secs"`
+	SMTPHost                    string `mapstructure:"smtp_host"`
+	SMTPPort                    int    `mapstructure:"smtp_port"`
+	SMTPUsername                string `mapstructure:"smtp_username"`
+	SMTPPassword                string `mapstructure:"smtp_password"`
+	SMTPFrom                    string `mapstructure:"smtp_from"`
+	WhatsappConfig              WhatsappConfig
+}
+
+type WhatsappConfig struct {
+	Host     string
+	Username string
+	Password string
 }
 
 var (
@@ -76,6 +88,11 @@ func initConfig() (*AppConfig, error) {
 		finalConfig.IsProduction = getEnvBoolOrDefault("IS_PRODUCTION", false)
 		finalConfig.RajaOngkirAPIKey = getEnvOrDefault("RAJAONGKIR_API_KEY", "")
 		finalConfig.RajaOngkirBaseURL = getEnvOrDefault("RAJAONGKIR_BASE_URL", "")
+		finalConfig.SMTPHost = getEnvOrDefault("SMTP_HOST", "")
+		finalConfig.SMTPPort = getEnvIntOrDefault("SMTP_PORT", 0)
+		finalConfig.SMTPUsername = getEnvOrDefault("SMTP_USERNAME", "")
+		finalConfig.SMTPPassword = getEnvOrDefault("SMTP_PASSWORD", "")
+		finalConfig.SMTPFrom = getEnvOrDefault("SMTP_FROM", "")
 		return &finalConfig, nil
 	}
 
@@ -95,12 +112,24 @@ func initConfig() (*AppConfig, error) {
 	finalConfig.HttpTimeout = viper.GetInt("http_timeout")
 	finalConfig.RajaOngkirAPIKey = viper.GetString("shipping.rajaongkir_api_key")
 	finalConfig.RajaOngkirBaseURL = viper.GetString("shipping.rajaongkir_base_url")
-	
+
 	// Load cache configuration
 	finalConfig.RajaOngkirCacheEnabled = viper.GetBool("shipping.rajaongkir_cache_enabled")
 	finalConfig.RajaOngkirCacheTTLHours = viper.GetInt("shipping.rajaongkir_cache_ttl_hours")
 	finalConfig.RajaOngkirWarmupOnStartup = viper.GetBool("shipping.rajaongkir_warmup_on_startup")
 	finalConfig.RajaOngkirWarmupTimeoutSecs = viper.GetInt("shipping.rajaongkir_warmup_timeout_secs")
+
+	//email
+	finalConfig.SMTPHost = viper.GetString("mail.host")
+	finalConfig.SMTPPort = viper.GetInt("mail.port")
+	finalConfig.SMTPUsername = viper.GetString("mail.username")
+	finalConfig.SMTPPassword = viper.GetString("mail.password")
+	finalConfig.SMTPFrom = viper.GetString("mail.sender_email")
+
+	//WA
+	finalConfig.WhatsappConfig.Host = viper.GetString("whatsapp.url")
+	finalConfig.WhatsappConfig.Username = viper.GetString("whatsapp.username")
+	finalConfig.WhatsappConfig.Password = viper.GetString("whatsapp.password")
 
 	return &finalConfig, nil
 }
