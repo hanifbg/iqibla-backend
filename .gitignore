@@ -9,3 +9,4 @@ coverage.out
 *.exe
 .github/prompts/
 deploy.sh
+.DS_Store

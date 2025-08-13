@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>iQibla Indonesia Order Confirmation</title>
+<style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"; margin: 0; padding: 0; background-color: #f4f4f4; }
+    .container { width: 100%; max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
+    .header { background-color: #171717; color: #ffffff; text-align: center; padding: 24px 0; }
+    .content { padding: 32px 24px; color: #333333; line-height: 1.6; }
+    .order-summary { border: 1px solid #e0e0e0; border-radius: 8px; margin-top: 24px; }
+    .order-items { width: 100%; border-collapse: collapse; margin-top: 16px; }
+    .order-items th, .order-items td { padding: 12px; border-bottom: 1px solid #e0e0e0; text-align: left; }
+    .order-items th { background-color: #fafafa; font-weight: 600; }
+    .order-total { text-align: right; margin-top: 20px; }
+    .button { display: inline-block; padding: 12px 24px; margin-top: 24px; background-color: #22c55e; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600; }
+    .footer { text-align: center; font-size: 12px; color: #888888; padding: 24px 0; border-top: 1px solid #e0e0e0; margin-top: 32px; }
+</style>
+</head>
+<body>
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f4f4f4;padding:20px 0;">
+  <tr>
+    <td>
+      <table class="container" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="header">
+            <img src="https://id.iqibla.com/api/uploads/images/Logo%20White%20non%20BG.png" alt="iQibla Indonesia Logo" style="width: 150px; height: auto; display: block; margin: 0 auto;" />
+          </td>
+        </tr>
+        <tr>
+          <td class="content">
+            <h2 style="font-size:20px;margin:0 0 16px;">Hi {{.CustomerName}},</h2>
+            <p style="margin:0 0 16px;">Thank you for your order! Your order #{{.OrderNumber}} has been confirmed and is being processed.</p>
+            <p style="margin:0 0 24px;font-weight:600;">Please complete your payment to finalize the order.</p>
+
+            <table class="order-summary" cellpadding="0" cellspacing="0" border="0" width="100%">
+              <tr>
+                <td style="padding:16px 24px;">
+                  <h3 style="font-size:18px;margin:0 0 16px;">Order Summary #{{.OrderNumber}}</h3>
+                  
+                  <table class="order-items" cellpadding="0" cellspacing="0" border="0">
+                    <thead>
+                      <tr>
+                        <th style="width:60%;">Item</th>
+                        <th style="width:20%;">Quantity</th>
+                        <th style="width:20%;">Price</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {{range .OrderItems}}
+                      <tr>
+                        <td>{{.ProductName}}</td>
+                        <td>{{.Quantity}}</td>
+                        <td>Rp {{.PriceAtPurchase}}</td>
+                      </tr>
+                      {{end}}
+                    </tbody>
+                  </table>
+                  
+                  <div class="order-total">
+                    <p style="margin:8px 0;">Subtotal: Rp {{.SubtotalAmount}}</p>
+                    <p style="margin:8px 0;">Shipping: Rp {{.ShippingCost}}</p>
+                    <p style="margin:8px 0;font-weight:600;font-size:16px;">Total: Rp {{.TotalAmount}}</p>
+                  </div>
+                </td>
+              </tr>
+            </table>
+            
+            <div style="text-align:center;">
+              <a href="{{.OrderConfirmationLink}}" class="button" style="text-decoration:none;">View My Order</a>
+            </div>
+            
+            <p style="margin:32px 0 0;">If you have any questions, please contact our support team.</p>
+          </td>
+        </tr>
+        <tr>
+          <td class="footer">
+            <p>&copy; 2025 iQibla Indonesia. All rights reserved.</p>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+</body>
+</html>

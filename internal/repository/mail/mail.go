@@ -84,14 +84,14 @@ func (m *Mailer) SendOrderConfirmation(order *entity.Order, items []entity.Order
 // resolveTemplatePath returns absolute path to mail.html template
 func resolveTemplatePath() string {
 	// Prefer absolute path relative to project root when running in repo
-	defaultPath := filepath.Join("internal", "model", "static", "mail.html")
+	defaultPath := filepath.Join("internal", "model", "static", "mail2.html")
 	if _, err := os.Stat(defaultPath); err == nil {
 		return defaultPath
 	}
 	// Try with working dir adjustments
 	wd, err := os.Getwd()
 	if err == nil {
-		p := filepath.Join(wd, "internal", "model", "static", "mail.html")
+		p := filepath.Join(wd, "internal", "model", "static", "mail2.html")
 		if _, err := os.Stat(p); err == nil {
 			return p
 		}
