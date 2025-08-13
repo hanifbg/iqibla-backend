@@ -6,7 +6,7 @@ Halo {{.CustomerName}},
 Terima kasih telah berbelanja di iQibla Indonesia!
 Pesanan Anda telah berhasil dibuat dengan nomor #{{.OrderNumber}}.
 
-Total Pembayaran: Rp {{.TotalAmount}}
+Total Pembayaran: Rp{{.TotalAmount}}
 
 Silakan selesaikan pembayaran untuk mengkonfirmasi pesanan Anda.
 Anda dapat melihat detail pesanan dan melakukan pembayaran melalui link berikut:
@@ -29,11 +29,11 @@ A new order has been paid and confirmed.
 - *Customer:* ` + "`{{.CustomerName}}`" + `
 - *Email:* ` + "`{{.CustomerEmail}}`" + `
 - *Phone:* ` + "`{{.CustomerPhone}}`" + `
-- *Total:* ` + "`Rp {{.TotalAmount}}`" + `
+- *Total:* ` + "`Rp{{.TotalAmount}}`" + `
 
 *Items:*
 {{range .OrderItems}}
-- ` + "`{{.ProductName}}`" + ` (` + "`{{.Quantity}}`x `Rp {{.PriceAtPurchase}}`)" + `
+- ` + "`{{.ProductName}}`" + ` (` + "`{{.Quantity}}`x `Rp{{.PriceAtPurchase}}`)" + `
 {{end}}
 
 *Shipping Address:*

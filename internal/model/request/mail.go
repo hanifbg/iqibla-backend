@@ -11,7 +11,7 @@ package request
 type OrderEmailItem struct {
 	ProductName     string
 	Quantity        int
-	PriceAtPurchase float64
+	PriceAtPurchase string
 }
 
 // orderEmailData represents all data needed by the mail.html template
@@ -23,6 +23,6 @@ type OrderEmailData struct {
 	OrderItems            []OrderEmailItem
 	SubtotalAmount        float64
 	ShippingCost          float64
-	TotalAmount           float64
+	TotalAmount           string
 	OrderConfirmationLink string
 }

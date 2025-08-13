@@ -45,7 +45,7 @@ func (m *Mailer) SendOrderConfirmation(order *entity.Order, items []entity.Order
 		itemsEmail = append(itemsEmail, request.OrderEmailItem{
 			ProductName:     name,
 			Quantity:        it.Quantity,
-			PriceAtPurchase: it.PriceAtPurchase,
+			PriceAtPurchase: entity.FormatToIndonesianCurrency(it.PriceAtPurchase),
 		})
 	}
 
@@ -56,7 +56,7 @@ func (m *Mailer) SendOrderConfirmation(order *entity.Order, items []entity.Order
 		OrderItems:            itemsEmail,
 		SubtotalAmount:        order.Subtotal,
 		ShippingCost:          order.ShippingCost,
-		TotalAmount:           order.TotalAmount,
+		TotalAmount:           entity.FormatToIndonesianCurrency(order.TotalAmount),
 		OrderConfirmationLink: buildOrderLink(order.ID),
 	}
 

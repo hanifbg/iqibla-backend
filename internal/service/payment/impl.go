@@ -145,7 +145,7 @@ func (s *PaymentService) CreateOrder(req request.CreateOrderRequest) (*response.
 	payload := request.WhatsAppRequest{
 		CustomerName:          order.CustomerName,
 		OrderNumber:           orderNumber,
-		TotalAmount:           order.TotalAmount,
+		TotalAmount:           entity.FormatToIndonesianCurrency(order.TotalAmount),
 		OrderConfirmationLink: fmt.Sprintf("%s/order-confirmation/%s", s.baseURL, order.ID),
 	}
 
@@ -529,7 +529,7 @@ func (s *PaymentService) HandlePaymentNotification(notification request.PaymentN
 			CustomerName:    order.CustomerName,
 			CustomerEmail:   order.CustomerEmail,
 			CustomerPhone:   order.CustomerPhone,
-			TotalAmount:     order.TotalAmount,
+			TotalAmount:     entity.FormatToIndonesianCurrency(order.TotalAmount),
 			ShippingAddress: shippingAddress,
 			ShippingCourier: order.ShippingCourier,
 			ShippingService: order.ShippingService,

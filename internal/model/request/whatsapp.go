@@ -3,6 +3,6 @@ package request
 type WhatsAppRequest struct {
 	CustomerName          string
 	OrderNumber           string
-	TotalAmount           float64
+	TotalAmount           string
 	OrderConfirmationLink string
 }

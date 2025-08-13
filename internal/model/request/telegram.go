@@ -25,7 +25,7 @@ type TelegramRequest struct {
 	CustomerName    string
 	CustomerEmail   string
 	CustomerPhone   string
-	TotalAmount     float64
+	TotalAmount     string
 	ShippingAddress string
 	ShippingCourier string
 	ShippingService string
