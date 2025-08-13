@@ -187,7 +187,7 @@ func (s *PaymentService) formatPhoneNumberForWhatsApp(phoneNumber string) string
 	}
 
 	// Add the plus sign and WhatsApp suffix
-	return "+" + digitsOnly + "@s.whatsapp.net"
+	return digitsOnly + "@s.whatsapp.net"
 }
 
 func (s *PaymentService) GetOrder(orderID string) (*response.OrderResponse, error) {
