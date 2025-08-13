@@ -284,5 +284,42 @@ func (m *MockMailer) SendOrderConfirmation(order *entity.Order, items []entity.O
 // SendOrderConfirmation indicates an expected call of SendOrderConfirmation.
 func (mr *MockMailerMockRecorder) SendOrderConfirmation(order interface{}, items interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendOrderConfirmation", reflect.TypeOf((*MockMailer)(nil).SendOrderConfirmation), order)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendOrderConfirmation", reflect.TypeOf((*MockMailer)(nil).SendOrderConfirmation), order, items)
+}
+
+// MockWhatsApp is a mock of WhatsApp interface.
+type MockWhatsApp struct {
+	ctrl     *gomock.Controller
+	recorder *MockWhatsAppMockRecorder
+}
+
+// MockWhatsAppMockRecorder is the mock recorder for MockWhatsApp.
+type MockWhatsAppMockRecorder struct {
+	mock *MockWhatsApp
+}
+
+// NewMockWhatsApp creates a new mock instance.
+func NewMockWhatsApp(ctrl *gomock.Controller) *MockWhatsApp {
+	mock := &MockWhatsApp{ctrl: ctrl}
+	mock.recorder = &MockWhatsAppMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockWhatsApp) EXPECT() *MockWhatsAppMockRecorder {
+	return m.recorder
+}
+
+// SendMessage mocks base method.
+func (m *MockWhatsApp) SendMessage(phoneNumber, message string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SendMessage", phoneNumber, message)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SendMessage indicates an expected call of SendMessage.
+func (mr *MockWhatsAppMockRecorder) SendMessage(phoneNumber, message interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendMessage", reflect.TypeOf((*MockWhatsApp)(nil).SendMessage), phoneNumber, message)
 }

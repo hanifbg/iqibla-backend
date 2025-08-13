@@ -16,9 +16,9 @@ import (
 
 // Config holds configuration for the RajaOngkir repository
 type Config struct {
-	APIKey  string        // API key for RajaOngkir service
-	BaseURL string        // Base URL for RajaOngkir API
-	Timeout time.Duration // HTTP client timeout
+	APIKey  string       // API key for RajaOngkir service
+	BaseURL string       // Base URL for RajaOngkir API
+	Client  *http.Client // HTTP client timeout
 
 	// Cache configuration
 	CacheEnabled      bool // Whether caching is enabled
@@ -54,11 +54,6 @@ func WithCustomClient(client *http.Client) Option {
 
 // NewRepository creates a new RajaOngkir repository
 func NewRepository(cfg Config, opts ...Option) *Repository {
-	// Set default timeout if not provided
-	if cfg.Timeout == 0 {
-		cfg.Timeout = 30 * time.Second
-	}
-
 	// Initialize cache if enabled
 	var cache *Cache
 	if cfg.CacheEnabled {
@@ -76,10 +71,8 @@ func NewRepository(cfg Config, opts ...Option) *Repository {
 	repo := &Repository{
 		apiKey:  cfg.APIKey,
 		baseURL: cfg.BaseURL,
-		client: &http.Client{
-			Timeout: cfg.Timeout,
-		},
-		cache: cache,
+		client:  cfg.Client,
+		cache:   cache,
 	}
 
 	// Apply options

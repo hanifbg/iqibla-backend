@@ -35,6 +35,13 @@ type AppConfig struct {
 	SMTPUsername                string `mapstructure:"smtp_username"`
 	SMTPPassword                string `mapstructure:"smtp_password"`
 	SMTPFrom                    string `mapstructure:"smtp_from"`
+	WhatsappConfig              WhatsappConfig
+}
+
+type WhatsappConfig struct {
+	Host     string
+	Username string
+	Password string
 }
 
 var (
@@ -118,6 +125,11 @@ func initConfig() (*AppConfig, error) {
 	finalConfig.SMTPUsername = viper.GetString("mail.username")
 	finalConfig.SMTPPassword = viper.GetString("mail.password")
 	finalConfig.SMTPFrom = viper.GetString("mail.sender_email")
+
+	//WA
+	finalConfig.WhatsappConfig.Host = viper.GetString("whatsapp.url")
+	finalConfig.WhatsappConfig.Username = viper.GetString("whatsapp.username")
+	finalConfig.WhatsappConfig.Password = viper.GetString("whatsapp.password")
 
 	return &finalConfig, nil
 }

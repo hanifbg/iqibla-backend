@@ -1,15 +1,20 @@
 package payment
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"log"
+	"regexp"
+	"strings"
+	"text/template"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/hanifbg/landing_backend/internal/model/entity"
 	"github.com/hanifbg/landing_backend/internal/model/request"
 	"github.com/hanifbg/landing_backend/internal/model/response"
+	"github.com/hanifbg/landing_backend/internal/model/static"
 	"github.com/midtrans/midtrans-go"
 	"github.com/midtrans/midtrans-go/snap"
 )
@@ -130,12 +135,59 @@ func (s *PaymentService) CreateOrder(req request.CreateOrderRequest) (*response.
 		TotalAmount: order.TotalAmount,
 	}
 
+	//send email
 	err = s.mailer.SendOrderConfirmation(order, orderItems)
 	if err != nil {
 		log.Printf("failed to send order confirmation email: %v", err)
 	}
+	//send whatsapp
+	payload := request.WhatsAppRequest{
+		CustomerName:          order.CustomerName,
+		OrderNumber:           orderNumber,
+		TotalAmount:           order.TotalAmount,
+		OrderConfirmationLink: fmt.Sprintf("%s/orders/%s", s.baseURL, order.ID),
+	}
 
+	// Parse the template and execute it with the data
+	tmpl, err := template.New("whatsappMessage").Parse(static.WAMessageTemplate)
+	if err != nil {
+		log.Printf("failed to parse WhatsApp message template: %v", err)
+	}
+
+	var buf bytes.Buffer
+	if err := tmpl.Execute(&buf, payload); err != nil {
+		log.Printf("failed to execute WhatsApp message template: %v", err)
+	}
+
+	// Call the function to send the message if WhatsApp repository is available
+	if s.whatsAppRepo != nil {
+		// Format the phone number correctly for WhatsApp
+		phoneNumber := s.formatPhoneNumberForWhatsApp(order.CustomerPhone)
+		if err := s.whatsAppRepo.SendMessage(phoneNumber, buf.String()); err != nil {
+			log.Printf("failed to send WhatsApp message: %v", err)
+		}
+	}
 	return orderResponse, nil
+}
+
+// formatPhoneNumberForWhatsApp converts a regular phone number to WhatsApp format
+// It ensures the number starts with "+628" for Indonesia and appends "@s.whatsapp.net"
+func (s *PaymentService) formatPhoneNumberForWhatsApp(phoneNumber string) string {
+	// Remove any non-digit characters
+	digitsOnly := regexp.MustCompile(`\D`).ReplaceAllString(phoneNumber, "")
+	
+	// If the number starts with 0, replace it with 62 (Indonesia country code)
+	if strings.HasPrefix(digitsOnly, "0") {
+		digitsOnly = "62" + digitsOnly[1:]
+	}
+	
+	// If the number doesn't start with 62, add it
+	if !strings.HasPrefix(digitsOnly, "62") {
+		digitsOnly = "62" + digitsOnly
+	}
+	
+	// Add the plus sign and WhatsApp suffix
+	return "+" + digitsOnly + "@s.whatsapp.net"
 }
 
 func (s *PaymentService) GetOrder(orderID string) (*response.OrderResponse, error) {
