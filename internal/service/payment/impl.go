@@ -488,67 +488,69 @@ func (s *PaymentService) HandlePaymentNotification(notification request.PaymentN
 	}
 
 	//telegram notification
-	order, err := s.paymentRepo.GetOrderWithItems(orderID)
-	if err != nil {
-		log.Printf("failed to get order with items: %v", err)
-	}
+	if paymentStatus == entity.PaymentStatusSuccess {
+		order, err := s.paymentRepo.GetOrderWithItems(orderID)
+		if err != nil {
+			log.Printf("failed to get order with items: %v", err)
+		}
 
-	orderItems := make([]struct {
-		ProductName     string
-		Quantity        int
-		PriceAtPurchase float64
-	}, 0)
-
-	for _, item := range order.OrderItems {
-		orderItems = append(orderItems, struct {
+		orderItems := make([]struct {
 			ProductName     string
 			Quantity        int
 			PriceAtPurchase float64
-		}{
-			ProductName:     item.ProductVariant.Name,
-			Quantity:        item.Quantity,
-			PriceAtPurchase: item.PriceAtPurchase,
-		})
-	}
+		}, 0)
 
-	shippingAddressData := &request.TelegramShippingAddressData{
-		ShippingStreetAddress: order.ShippingStreetAddress,
-		ShippingCity:          order.ShippingCity,
-		ShippingProvince:      order.ShippingProvince,
-		ShippingDistrict:      order.ShippingDistrict,
-		ShippingPostalCode:    order.ShippingPostalCode,
-		ShippingCountry:       order.ShippingCountry,
-	}
+		for _, item := range order.OrderItems {
+			orderItems = append(orderItems, struct {
+				ProductName     string
+				Quantity        int
+				PriceAtPurchase float64
+			}{
+				ProductName:     item.ProductVariant.Name,
+				Quantity:        item.Quantity,
+				PriceAtPurchase: item.PriceAtPurchase,
+			})
+		}
 
-	shippingAddress := request.FormatShippingAddress(*shippingAddressData)
+		shippingAddressData := &request.TelegramShippingAddressData{
+			ShippingStreetAddress: order.ShippingStreetAddress,
+			ShippingCity:          order.ShippingCity,
+			ShippingProvince:      order.ShippingProvince,
+			ShippingDistrict:      order.ShippingDistrict,
+			ShippingPostalCode:    order.ShippingPostalCode,
+			ShippingCountry:       order.ShippingCountry,
+		}
 
-	telegramReq := &request.TelegramRequest{
-		OrderID:         orderID,
-		OrderNumber:     order.OrderNumber,
-		CustomerName:    order.CustomerName,
-		CustomerEmail:   order.CustomerEmail,
-		CustomerPhone:   order.CustomerPhone,
-		TotalAmount:     order.TotalAmount,
-		ShippingAddress: shippingAddress,
-		ShippingCourier: order.ShippingCourier,
-		ShippingService: order.ShippingService,
-		OrderItems:      orderItems,
-	}
+		shippingAddress := request.FormatShippingAddress(*shippingAddressData)
 
-	// Parse the template and execute it with the data
-	tmpl, err := template.New("telegramMessage").Parse(static.TelegramTemplate)
-	if err != nil {
-		log.Printf("failed to parse Telegram message template: %v", err)
-	}
+		telegramReq := &request.TelegramRequest{
+			OrderID:         orderID,
+			OrderNumber:     order.OrderNumber,
+			CustomerName:    order.CustomerName,
+			CustomerEmail:   order.CustomerEmail,
+			CustomerPhone:   order.CustomerPhone,
+			TotalAmount:     order.TotalAmount,
+			ShippingAddress: shippingAddress,
+			ShippingCourier: order.ShippingCourier,
+			ShippingService: order.ShippingService,
+			OrderItems:      orderItems,
+		}
 
-	var buf bytes.Buffer
-	if err := tmpl.Execute(&buf, telegramReq); err != nil {
-		log.Printf("failed to execute Telegram message template: %v", err)
-	}
+		// Parse the template and execute it with the data
+		tmpl, err := template.New("telegramMessage").Parse(static.TelegramTemplate)
+		if err != nil {
+			log.Printf("failed to parse Telegram message template: %v", err)
+		}
 
-	_, err = s.telegramRepo.telegramRepo.SendMessage(context.Background(), s.telegramRepo.orderChatID, s.telegramRepo.messageThreadID, buf.String())
-	if err != nil {
-		log.Printf("failed to send Telegram message: %v", err)
+		var buf bytes.Buffer
+		if err := tmpl.Execute(&buf, telegramReq); err != nil {
+			log.Printf("failed to execute Telegram message template: %v", err)
+		}
+
+		_, err = s.telegramRepo.telegramRepo.SendMessage(context.Background(), s.telegramRepo.orderChatID, s.telegramRepo.messageThreadID, buf.String())
+		if err != nil {
+			log.Printf("failed to send Telegram message: %v", err)
+		}
 	}
 
 	return nil
