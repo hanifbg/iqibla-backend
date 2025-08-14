@@ -17,15 +17,27 @@ import (
 )
 
 // Helper function to create a test payment service
-func createTestPaymentService(paymentRepo repository.PaymentRepository, cartRepo repository.CartRepository, snapClient SnapClientInterface) *PaymentService {
-	return &PaymentService{
-		paymentRepo:  paymentRepo,
-		cartRepo:     cartRepo,
-		snapClient:   snapClient,
-		baseURL:      "http://localhost:8080",
-		mailer:       nil,
-		whatsAppRepo: nil,
+func createTestPaymentService(ctrl *gomock.Controller, paymentRepo repository.PaymentRepository, cartRepo repository.CartRepository, snapClient SnapClientInterface) *PaymentService {
+	svc := &PaymentService{
+		paymentRepo: paymentRepo,
+		cartRepo:    cartRepo,
+		snapClient:  snapClient,
+		baseURL:     "http://localhost:8080",
 	}
+	// Provide default no-op mocks for external side effects to avoid nil panics
+	mockMailer := mocks.NewMockMailer(ctrl)
+	mockMailer.EXPECT().SendOrderConfirmation(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+	svc.mailer = mockMailer
+
+	mockWA := mocks.NewMockWhatsApp(ctrl)
+	mockWA.EXPECT().SendMessage(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+	svc.whatsAppRepo = mockWA
+
+	mockTele := mocks.NewMockTelegramAPI(ctrl)
+	mockTele.EXPECT().SendMessage(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, nil).AnyTimes()
+	svc.telegramRepo = telegramService{telegramRepo: mockTele}
+
+	return svc
 }
 
 // Test CreateOrder method
@@ -38,7 +50,7 @@ func TestPaymentService_CreateOrder(t *testing.T) {
 		mockPaymentRepo := mocks.NewMockPaymentRepository(ctrl)
 		mockCartRepo := mocks.NewMockCartRepository(ctrl)
 		mockSnapClient := mocks.NewMockSnapClientInterface(ctrl)
-		service := createTestPaymentService(mockPaymentRepo, mockCartRepo, mockSnapClient)
+		service := createTestPaymentService(ctrl, mockPaymentRepo, mockCartRepo, mockSnapClient)
 
 		cart := createTestCartWithItems()
 		req := request.CreateOrderRequest{
@@ -84,7 +96,7 @@ func TestPaymentService_CreateOrder(t *testing.T) {
 		mockPaymentRepo := mocks.NewMockPaymentRepository(ctrl)
 		mockCartRepo := mocks.NewMockCartRepository(ctrl)
 		mockSnapClient := mocks.NewMockSnapClientInterface(ctrl)
-		service := createTestPaymentService(mockPaymentRepo, mockCartRepo, mockSnapClient)
+		service := createTestPaymentService(ctrl, mockPaymentRepo, mockCartRepo, mockSnapClient)
 
 		req := request.CreateOrderRequest{
 			CartID:               "invalid-cart",
@@ -122,7 +134,7 @@ func TestPaymentService_CreateOrder(t *testing.T) {
 		mockPaymentRepo := mocks.NewMockPaymentRepository(ctrl)
 		mockCartRepo := mocks.NewMockCartRepository(ctrl)
 		mockSnapClient := mocks.NewMockSnapClientInterface(ctrl)
-		service := createTestPaymentService(mockPaymentRepo, mockCartRepo, mockSnapClient)
+		service := createTestPaymentService(ctrl, mockPaymentRepo, mockCartRepo, mockSnapClient)
 
 		emptyCart := &entity.Cart{
 			ID: "cart-123",
@@ -166,7 +178,7 @@ func TestPaymentService_CreateOrder(t *testing.T) {
 		mockPaymentRepo := mocks.NewMockPaymentRepository(ctrl)
 		mockCartRepo := mocks.NewMockCartRepository(ctrl)
 		mockSnapClient := mocks.NewMockSnapClientInterface(ctrl)
-		service := createTestPaymentService(mockPaymentRepo, mockCartRepo, mockSnapClient)
+		service := createTestPaymentService(ctrl, mockPaymentRepo, mockCartRepo, mockSnapClient)
 
 		cart := createTestCartWithItems()
 		req := request.CreateOrderRequest{
@@ -210,7 +222,7 @@ func TestPaymentService_GetOrder(t *testing.T) {
 		mockPaymentRepo := mocks.NewMockPaymentRepository(ctrl)
 		mockCartRepo := mocks.NewMockCartRepository(ctrl)
 		mockSnapClient := mocks.NewMockSnapClientInterface(ctrl)
-		service := createTestPaymentService(mockPaymentRepo, mockCartRepo, mockSnapClient)
+		service := createTestPaymentService(ctrl, mockPaymentRepo, mockCartRepo, mockSnapClient)
 
 		order := createTestOrder()
 		order.OrderItems = []entity.OrderItem{
@@ -250,7 +262,7 @@ func TestPaymentService_GetOrder(t *testing.T) {
 		mockPaymentRepo := mocks.NewMockPaymentRepository(ctrl)
 		mockCartRepo := mocks.NewMockCartRepository(ctrl)
 		mockSnapClient := mocks.NewMockSnapClientInterface(ctrl)
-		service := createTestPaymentService(mockPaymentRepo, mockCartRepo, mockSnapClient)
+		service := createTestPaymentService(ctrl, mockPaymentRepo, mockCartRepo, mockSnapClient)
 
 		mockPaymentRepo.EXPECT().GetOrderWithItems("invalid-order").Return(nil, errors.New("order not found"))
 
@@ -274,7 +286,7 @@ func TestPaymentService_CreatePayment(t *testing.T) {
 		mockPaymentRepo := mocks.NewMockPaymentRepository(ctrl)
 		mockCartRepo := mocks.NewMockCartRepository(ctrl)
 		mockSnapClient := mocks.NewMockSnapClientInterface(ctrl)
-		service := createTestPaymentService(mockPaymentRepo, mockCartRepo, mockSnapClient)
+		service := createTestPaymentService(ctrl, mockPaymentRepo, mockCartRepo, mockSnapClient)
 
 		order := createTestOrder()
 
@@ -305,7 +317,7 @@ func TestPaymentService_CreatePayment(t *testing.T) {
 		mockPaymentRepo := mocks.NewMockPaymentRepository(ctrl)
 		mockCartRepo := mocks.NewMockCartRepository(ctrl)
 		mockSnapClient := mocks.NewMockSnapClientInterface(ctrl)
-		service := createTestPaymentService(mockPaymentRepo, mockCartRepo, mockSnapClient)
+		service := createTestPaymentService(ctrl, mockPaymentRepo, mockCartRepo, mockSnapClient)
 
 		order := createTestOrder()
 		existingPayment := createTestPayment()
@@ -332,7 +344,7 @@ func TestPaymentService_CreatePayment(t *testing.T) {
 		mockPaymentRepo := mocks.NewMockPaymentRepository(ctrl)
 		mockCartRepo := mocks.NewMockCartRepository(ctrl)
 		mockSnapClient := mocks.NewMockSnapClientInterface(ctrl)
-		service := createTestPaymentService(mockPaymentRepo, mockCartRepo, mockSnapClient)
+		service := createTestPaymentService(ctrl, mockPaymentRepo, mockCartRepo, mockSnapClient)
 
 		mockPaymentRepo.EXPECT().FindOrderByID("invalid-order").Return(nil, errors.New("order not found"))
 
@@ -353,7 +365,7 @@ func TestPaymentService_CreatePayment(t *testing.T) {
 		mockPaymentRepo := mocks.NewMockPaymentRepository(ctrl)
 		mockCartRepo := mocks.NewMockCartRepository(ctrl)
 		mockSnapClient := mocks.NewMockSnapClientInterface(ctrl)
-		service := createTestPaymentService(mockPaymentRepo, mockCartRepo, mockSnapClient)
+		service := createTestPaymentService(ctrl, mockPaymentRepo, mockCartRepo, mockSnapClient)
 
 		order := createTestOrder()
 
@@ -377,7 +389,7 @@ func TestPaymentService_CreatePayment(t *testing.T) {
 		mockPaymentRepo := mocks.NewMockPaymentRepository(ctrl)
 		mockCartRepo := mocks.NewMockCartRepository(ctrl)
 		mockSnapClient := mocks.NewMockSnapClientInterface(ctrl)
-		service := createTestPaymentService(mockPaymentRepo, mockCartRepo, mockSnapClient)
+		service := createTestPaymentService(ctrl, mockPaymentRepo, mockCartRepo, mockSnapClient)
 
 		order := createTestOrder()
 
@@ -401,7 +413,7 @@ func TestPaymentService_CreatePayment(t *testing.T) {
 		mockPaymentRepo := mocks.NewMockPaymentRepository(ctrl)
 		mockCartRepo := mocks.NewMockCartRepository(ctrl)
 		mockSnapClient := mocks.NewMockSnapClientInterface(ctrl)
-		service := createTestPaymentService(mockPaymentRepo, mockCartRepo, mockSnapClient)
+		service := createTestPaymentService(ctrl, mockPaymentRepo, mockCartRepo, mockSnapClient)
 
 		order := createTestOrder()
 
@@ -430,7 +442,7 @@ func TestPaymentService_HandlePaymentNotification_ErrorCases(t *testing.T) {
 		mockPaymentRepo := mocks.NewMockPaymentRepository(ctrl)
 		mockCartRepo := mocks.NewMockCartRepository(ctrl)
 		mockSnapClient := mocks.NewMockSnapClientInterface(ctrl)
-		service := createTestPaymentService(mockPaymentRepo, mockCartRepo, mockSnapClient)
+		service := createTestPaymentService(ctrl, mockPaymentRepo, mockCartRepo, mockSnapClient)
 
 		notification := request.PaymentNotificationRequest{
 			TransactionID:     "", // Empty transaction ID
@@ -455,7 +467,7 @@ func TestPaymentService_HandlePaymentNotification_ErrorCases(t *testing.T) {
 		mockPaymentRepo := mocks.NewMockPaymentRepository(ctrl)
 		mockCartRepo := mocks.NewMockCartRepository(ctrl)
 		mockSnapClient := mocks.NewMockSnapClientInterface(ctrl)
-		service := createTestPaymentService(mockPaymentRepo, mockCartRepo, mockSnapClient)
+		service := createTestPaymentService(ctrl, mockPaymentRepo, mockCartRepo, mockSnapClient)
 
 		notification := request.PaymentNotificationRequest{
 			TransactionID:     "txn-123",
@@ -480,7 +492,7 @@ func TestPaymentService_HandlePaymentNotification_ErrorCases(t *testing.T) {
 		mockPaymentRepo := mocks.NewMockPaymentRepository(ctrl)
 		mockCartRepo := mocks.NewMockCartRepository(ctrl)
 		mockSnapClient := mocks.NewMockSnapClientInterface(ctrl)
-		service := createTestPaymentService(mockPaymentRepo, mockCartRepo, mockSnapClient)
+		service := createTestPaymentService(ctrl, mockPaymentRepo, mockCartRepo, mockSnapClient)
 
 		notification := request.PaymentNotificationRequest{
 			TransactionID:     "txn-123",
@@ -507,7 +519,7 @@ func TestPaymentService_HandlePaymentNotification_ErrorCases(t *testing.T) {
 		mockPaymentRepo := mocks.NewMockPaymentRepository(ctrl)
 		mockCartRepo := mocks.NewMockCartRepository(ctrl)
 		mockSnapClient := mocks.NewMockSnapClientInterface(ctrl)
-		service := createTestPaymentService(mockPaymentRepo, mockCartRepo, mockSnapClient)
+		service := createTestPaymentService(ctrl, mockPaymentRepo, mockCartRepo, mockSnapClient)
 
 		payment := createTestPayment()
 		notification := request.PaymentNotificationRequest{
@@ -535,7 +547,7 @@ func TestPaymentService_HandlePaymentNotification_ErrorCases(t *testing.T) {
 		mockPaymentRepo := mocks.NewMockPaymentRepository(ctrl)
 		mockCartRepo := mocks.NewMockCartRepository(ctrl)
 		mockSnapClient := mocks.NewMockSnapClientInterface(ctrl)
-		service := createTestPaymentService(mockPaymentRepo, mockCartRepo, mockSnapClient)
+		service := createTestPaymentService(ctrl, mockPaymentRepo, mockCartRepo, mockSnapClient)
 
 		payment := createTestPayment()
 		notification := request.PaymentNotificationRequest{
@@ -564,7 +576,7 @@ func TestPaymentService_HandlePaymentNotification_ErrorCases(t *testing.T) {
 		mockPaymentRepo := mocks.NewMockPaymentRepository(ctrl)
 		mockCartRepo := mocks.NewMockCartRepository(ctrl)
 		mockSnapClient := mocks.NewMockSnapClientInterface(ctrl)
-		service := createTestPaymentService(mockPaymentRepo, mockCartRepo, mockSnapClient)
+		service := createTestPaymentService(ctrl, mockPaymentRepo, mockCartRepo, mockSnapClient)
 
 		payment := createTestPayment()
 		notification := request.PaymentNotificationRequest{
@@ -596,7 +608,7 @@ func TestPaymentService_GetPaymentStatus(t *testing.T) {
 		mockPaymentRepo := mocks.NewMockPaymentRepository(ctrl)
 		mockCartRepo := mocks.NewMockCartRepository(ctrl)
 		mockSnapClient := mocks.NewMockSnapClientInterface(ctrl)
-		service := createTestPaymentService(mockPaymentRepo, mockCartRepo, mockSnapClient)
+		service := createTestPaymentService(ctrl, mockPaymentRepo, mockCartRepo, mockSnapClient)
 
 		existingPayment := createTestPayment()
 		existingPayment.Status = entity.PaymentStatusSuccess
@@ -629,7 +641,7 @@ func TestPaymentService_GetPaymentStatus(t *testing.T) {
 		mockPaymentRepo := mocks.NewMockPaymentRepository(ctrl)
 		mockCartRepo := mocks.NewMockCartRepository(ctrl)
 		mockSnapClient := mocks.NewMockSnapClientInterface(ctrl)
-		service := createTestPaymentService(mockPaymentRepo, mockCartRepo, mockSnapClient)
+		service := createTestPaymentService(ctrl, mockPaymentRepo, mockCartRepo, mockSnapClient)
 
 		mockPaymentRepo.EXPECT().FindPaymentByID("invalid-payment").Return(nil, errors.New("payment not found"))
 
@@ -653,7 +665,7 @@ func TestPaymentService_HandlePaymentNotification(t *testing.T) {
 		mockPaymentRepo := mocks.NewMockPaymentRepository(ctrl)
 		mockCartRepo := mocks.NewMockCartRepository(ctrl)
 		mockSnapClient := mocks.NewMockSnapClientInterface(ctrl)
-		service := createTestPaymentService(mockPaymentRepo, mockCartRepo, mockSnapClient)
+		service := createTestPaymentService(ctrl, mockPaymentRepo, mockCartRepo, mockSnapClient)
 
 		payment := createTestPayment()
 		notification := request.PaymentNotificationRequest{
@@ -667,6 +679,13 @@ func TestPaymentService_HandlePaymentNotification(t *testing.T) {
 
 		mockPaymentRepo.EXPECT().FindPaymentByOrderID("order-123").Return(payment, nil)
 		mockPaymentRepo.EXPECT().UpdatePaymentAndOrderStatus(gomock.Any(), "order-123", "processing").Return(nil)
+		// Telegram notification triggers GetOrderWithItems
+		order := createTestOrder()
+		order.OrderItems = []entity.OrderItem{{
+			ID: "item-1", ProductVariantID: "variant-1", Quantity: 1, PriceAtPurchase: 100.0,
+			ProductVariant: &entity.ProductVariant{Name: "Test Product"},
+		}}
+		mockPaymentRepo.EXPECT().GetOrderWithItems("order-123").Return(order, nil)
 
 		// Act
 		err := service.HandlePaymentNotification(notification)
@@ -683,7 +702,7 @@ func TestPaymentService_HandlePaymentNotification(t *testing.T) {
 		mockPaymentRepo := mocks.NewMockPaymentRepository(ctrl)
 		mockCartRepo := mocks.NewMockCartRepository(ctrl)
 		mockSnapClient := mocks.NewMockSnapClientInterface(ctrl)
-		service := createTestPaymentService(mockPaymentRepo, mockCartRepo, mockSnapClient)
+		service := createTestPaymentService(ctrl, mockPaymentRepo, mockCartRepo, mockSnapClient)
 
 		payment := createTestPayment()
 		notification := request.PaymentNotificationRequest{
@@ -713,7 +732,7 @@ func TestPaymentService_HandlePaymentNotification(t *testing.T) {
 		mockPaymentRepo := mocks.NewMockPaymentRepository(ctrl)
 		mockCartRepo := mocks.NewMockCartRepository(ctrl)
 		mockSnapClient := mocks.NewMockSnapClientInterface(ctrl)
-		service := createTestPaymentService(mockPaymentRepo, mockCartRepo, mockSnapClient)
+		service := createTestPaymentService(ctrl, mockPaymentRepo, mockCartRepo, mockSnapClient)
 
 		payment := createTestPayment()
 		notification := request.PaymentNotificationRequest{
@@ -743,7 +762,7 @@ func TestPaymentService_HandlePaymentNotification(t *testing.T) {
 		mockPaymentRepo := mocks.NewMockPaymentRepository(ctrl)
 		mockCartRepo := mocks.NewMockCartRepository(ctrl)
 		mockSnapClient := mocks.NewMockSnapClientInterface(ctrl)
-		service := createTestPaymentService(mockPaymentRepo, mockCartRepo, mockSnapClient)
+		service := createTestPaymentService(ctrl, mockPaymentRepo, mockCartRepo, mockSnapClient)
 
 		notification := request.PaymentNotificationRequest{
 			TransactionID:     "",
@@ -768,7 +787,7 @@ func TestPaymentService_HandlePaymentNotification(t *testing.T) {
 		mockPaymentRepo := mocks.NewMockPaymentRepository(ctrl)
 		mockCartRepo := mocks.NewMockCartRepository(ctrl)
 		mockSnapClient := mocks.NewMockSnapClientInterface(ctrl)
-		service := createTestPaymentService(mockPaymentRepo, mockCartRepo, mockSnapClient)
+		service := createTestPaymentService(ctrl, mockPaymentRepo, mockCartRepo, mockSnapClient)
 
 		notification := request.PaymentNotificationRequest{
 			TransactionID:     "txn-123",
@@ -793,7 +812,7 @@ func TestPaymentService_HandlePaymentNotification(t *testing.T) {
 		mockPaymentRepo := mocks.NewMockPaymentRepository(ctrl)
 		mockCartRepo := mocks.NewMockCartRepository(ctrl)
 		mockSnapClient := mocks.NewMockSnapClientInterface(ctrl)
-		service := createTestPaymentService(mockPaymentRepo, mockCartRepo, mockSnapClient)
+		service := createTestPaymentService(ctrl, mockPaymentRepo, mockCartRepo, mockSnapClient)
 
 		notification := request.PaymentNotificationRequest{
 			TransactionID:     "txn-123",
@@ -820,7 +839,7 @@ func TestPaymentService_HandlePaymentNotification(t *testing.T) {
 		mockPaymentRepo := mocks.NewMockPaymentRepository(ctrl)
 		mockCartRepo := mocks.NewMockCartRepository(ctrl)
 		mockSnapClient := mocks.NewMockSnapClientInterface(ctrl)
-		service := createTestPaymentService(mockPaymentRepo, mockCartRepo, mockSnapClient)
+		service := createTestPaymentService(ctrl, mockPaymentRepo, mockCartRepo, mockSnapClient)
 
 		payment := createTestPayment()
 		notification := request.PaymentNotificationRequest{
@@ -848,7 +867,7 @@ func TestPaymentService_HandlePaymentNotification(t *testing.T) {
 		mockPaymentRepo := mocks.NewMockPaymentRepository(ctrl)
 		mockCartRepo := mocks.NewMockCartRepository(ctrl)
 		mockSnapClient := mocks.NewMockSnapClientInterface(ctrl)
-		service := createTestPaymentService(mockPaymentRepo, mockCartRepo, mockSnapClient)
+		service := createTestPaymentService(ctrl, mockPaymentRepo, mockCartRepo, mockSnapClient)
 
 		payment := createTestPayment()
 		notification := request.PaymentNotificationRequest{
@@ -861,6 +880,12 @@ func TestPaymentService_HandlePaymentNotification(t *testing.T) {
 
 		mockPaymentRepo.EXPECT().FindPaymentByOrderID("order-123").Return(payment, nil)
 		mockPaymentRepo.EXPECT().UpdatePaymentAndOrderStatus(gomock.Any(), "order-123", "processing").Return(nil)
+		order := createTestOrder()
+		order.OrderItems = []entity.OrderItem{{
+			ID: "item-1", ProductVariantID: "variant-1", Quantity: 1, PriceAtPurchase: 100.0,
+			ProductVariant: &entity.ProductVariant{Name: "Test Product"},
+		}}
+		mockPaymentRepo.EXPECT().GetOrderWithItems("order-123").Return(order, nil)
 
 		// Act
 		err := service.HandlePaymentNotification(notification)
@@ -877,7 +902,7 @@ func TestPaymentService_HandlePaymentNotification(t *testing.T) {
 		mockPaymentRepo := mocks.NewMockPaymentRepository(ctrl)
 		mockCartRepo := mocks.NewMockCartRepository(ctrl)
 		mockSnapClient := mocks.NewMockSnapClientInterface(ctrl)
-		service := createTestPaymentService(mockPaymentRepo, mockCartRepo, mockSnapClient)
+		service := createTestPaymentService(ctrl, mockPaymentRepo, mockCartRepo, mockSnapClient)
 
 		payment := createTestPayment()
 		notification := request.PaymentNotificationRequest{
@@ -890,6 +915,12 @@ func TestPaymentService_HandlePaymentNotification(t *testing.T) {
 
 		mockPaymentRepo.EXPECT().FindPaymentByOrderID("order-123").Return(payment, nil)
 		mockPaymentRepo.EXPECT().UpdatePaymentAndOrderStatus(gomock.Any(), "order-123", "processing").Return(nil)
+		order := createTestOrder()
+		order.OrderItems = []entity.OrderItem{{
+			ID: "item-1", ProductVariantID: "variant-1", Quantity: 1, PriceAtPurchase: 100.0,
+			ProductVariant: &entity.ProductVariant{Name: "Test Product"},
+		}}
+		mockPaymentRepo.EXPECT().GetOrderWithItems("order-123").Return(order, nil)
 
 		// Act
 		err := service.HandlePaymentNotification(notification)
@@ -906,7 +937,7 @@ func TestPaymentService_HandlePaymentNotification(t *testing.T) {
 		mockPaymentRepo := mocks.NewMockPaymentRepository(ctrl)
 		mockCartRepo := mocks.NewMockCartRepository(ctrl)
 		mockSnapClient := mocks.NewMockSnapClientInterface(ctrl)
-		service := createTestPaymentService(mockPaymentRepo, mockCartRepo, mockSnapClient)
+		service := createTestPaymentService(ctrl, mockPaymentRepo, mockCartRepo, mockSnapClient)
 
 		payment := createTestPayment()
 		notification := request.PaymentNotificationRequest{
@@ -919,6 +950,12 @@ func TestPaymentService_HandlePaymentNotification(t *testing.T) {
 
 		mockPaymentRepo.EXPECT().FindPaymentByOrderID("order-123").Return(payment, nil)
 		mockPaymentRepo.EXPECT().UpdatePaymentAndOrderStatus(gomock.Any(), "order-123", "processing").Return(nil)
+		order := createTestOrder()
+		order.OrderItems = []entity.OrderItem{{
+			ID: "item-1", ProductVariantID: "variant-1", Quantity: 1, PriceAtPurchase: 100.0,
+			ProductVariant: &entity.ProductVariant{Name: "Test Product"},
+		}}
+		mockPaymentRepo.EXPECT().GetOrderWithItems("order-123").Return(order, nil)
 
 		// Act
 		err := service.HandlePaymentNotification(notification)
@@ -935,7 +972,7 @@ func TestPaymentService_HandlePaymentNotification(t *testing.T) {
 		mockPaymentRepo := mocks.NewMockPaymentRepository(ctrl)
 		mockCartRepo := mocks.NewMockCartRepository(ctrl)
 		mockSnapClient := mocks.NewMockSnapClientInterface(ctrl)
-		service := createTestPaymentService(mockPaymentRepo, mockCartRepo, mockSnapClient)
+		service := createTestPaymentService(ctrl, mockPaymentRepo, mockCartRepo, mockSnapClient)
 
 		payment := createTestPayment()
 		notification := request.PaymentNotificationRequest{
@@ -963,7 +1000,7 @@ func TestPaymentService_HandlePaymentNotification(t *testing.T) {
 		mockPaymentRepo := mocks.NewMockPaymentRepository(ctrl)
 		mockCartRepo := mocks.NewMockCartRepository(ctrl)
 		mockSnapClient := mocks.NewMockSnapClientInterface(ctrl)
-		service := createTestPaymentService(mockPaymentRepo, mockCartRepo, mockSnapClient)
+		service := createTestPaymentService(ctrl, mockPaymentRepo, mockCartRepo, mockSnapClient)
 
 		payment := createTestPayment()
 		notification := request.PaymentNotificationRequest{
@@ -991,7 +1028,7 @@ func TestPaymentService_HandlePaymentNotification(t *testing.T) {
 		mockPaymentRepo := mocks.NewMockPaymentRepository(ctrl)
 		mockCartRepo := mocks.NewMockCartRepository(ctrl)
 		mockSnapClient := mocks.NewMockSnapClientInterface(ctrl)
-		service := createTestPaymentService(mockPaymentRepo, mockCartRepo, mockSnapClient)
+		service := createTestPaymentService(ctrl, mockPaymentRepo, mockCartRepo, mockSnapClient)
 
 		payment := createTestPayment()
 		notification := request.PaymentNotificationRequest{
@@ -1004,6 +1041,12 @@ func TestPaymentService_HandlePaymentNotification(t *testing.T) {
 
 		mockPaymentRepo.EXPECT().FindPaymentByOrderID("order-123").Return(payment, nil)
 		mockPaymentRepo.EXPECT().UpdatePaymentAndOrderStatus(gomock.Any(), "order-123", "processing").Return(nil)
+		order := createTestOrder()
+		order.OrderItems = []entity.OrderItem{{
+			ID: "item-1", ProductVariantID: "variant-1", Quantity: 1, PriceAtPurchase: 100.0,
+			ProductVariant: &entity.ProductVariant{Name: "Test Product"},
+		}}
+		mockPaymentRepo.EXPECT().GetOrderWithItems("order-123").Return(order, nil)
 
 		// Act
 		err := service.HandlePaymentNotification(notification)
@@ -1020,7 +1063,7 @@ func TestPaymentService_HandlePaymentNotification(t *testing.T) {
 		mockPaymentRepo := mocks.NewMockPaymentRepository(ctrl)
 		mockCartRepo := mocks.NewMockCartRepository(ctrl)
 		mockSnapClient := mocks.NewMockSnapClientInterface(ctrl)
-		service := createTestPaymentService(mockPaymentRepo, mockCartRepo, mockSnapClient)
+		service := createTestPaymentService(ctrl, mockPaymentRepo, mockCartRepo, mockSnapClient)
 
 		payment := createTestPayment()
 		notification := request.PaymentNotificationRequest{
@@ -1049,7 +1092,7 @@ func TestPaymentService_HandlePaymentNotification(t *testing.T) {
 		mockPaymentRepo := mocks.NewMockPaymentRepository(ctrl)
 		mockCartRepo := mocks.NewMockCartRepository(ctrl)
 		mockSnapClient := mocks.NewMockSnapClientInterface(ctrl)
-		service := createTestPaymentService(mockPaymentRepo, mockCartRepo, mockSnapClient)
+		service := createTestPaymentService(ctrl, mockPaymentRepo, mockCartRepo, mockSnapClient)
 
 		payment := createTestPayment()
 		notification := request.PaymentNotificationRequest{
@@ -1062,6 +1105,12 @@ func TestPaymentService_HandlePaymentNotification(t *testing.T) {
 
 		mockPaymentRepo.EXPECT().FindPaymentByOrderID("order-123").Return(payment, nil)
 		mockPaymentRepo.EXPECT().UpdatePaymentAndOrderStatus(gomock.Any(), "order-123", "processing").Return(nil)
+		order := createTestOrder()
+		order.OrderItems = []entity.OrderItem{{
+			ID: "item-1", ProductVariantID: "variant-1", Quantity: 1, PriceAtPurchase: 100.0,
+			ProductVariant: &entity.ProductVariant{Name: "Test Product"},
+		}}
+		mockPaymentRepo.EXPECT().GetOrderWithItems("order-123").Return(order, nil)
 
 		// Act
 		err := service.HandlePaymentNotification(notification)
@@ -1078,7 +1127,7 @@ func TestPaymentService_HandlePaymentNotification(t *testing.T) {
 		mockPaymentRepo := mocks.NewMockPaymentRepository(ctrl)
 		mockCartRepo := mocks.NewMockCartRepository(ctrl)
 		mockSnapClient := mocks.NewMockSnapClientInterface(ctrl)
-		service := createTestPaymentService(mockPaymentRepo, mockCartRepo, mockSnapClient)
+		service := createTestPaymentService(ctrl, mockPaymentRepo, mockCartRepo, mockSnapClient)
 
 		payment := createTestPayment()
 		notification := request.PaymentNotificationRequest{
@@ -1107,7 +1156,7 @@ func TestPaymentService_HandlePaymentNotification(t *testing.T) {
 		mockPaymentRepo := mocks.NewMockPaymentRepository(ctrl)
 		mockCartRepo := mocks.NewMockCartRepository(ctrl)
 		mockSnapClient := mocks.NewMockSnapClientInterface(ctrl)
-		service := createTestPaymentService(mockPaymentRepo, mockCartRepo, mockSnapClient)
+		service := createTestPaymentService(ctrl, mockPaymentRepo, mockCartRepo, mockSnapClient)
 
 		payment := createTestPayment()
 		notification := request.PaymentNotificationRequest{
@@ -1136,7 +1185,7 @@ func TestPaymentService_HandlePaymentNotification(t *testing.T) {
 		mockPaymentRepo := mocks.NewMockPaymentRepository(ctrl)
 		mockCartRepo := mocks.NewMockCartRepository(ctrl)
 		mockSnapClient := mocks.NewMockSnapClientInterface(ctrl)
-		service := createTestPaymentService(mockPaymentRepo, mockCartRepo, mockSnapClient)
+		service := createTestPaymentService(ctrl, mockPaymentRepo, mockCartRepo, mockSnapClient)
 
 		payment := createTestPayment()
 		notification := request.PaymentNotificationRequest{
@@ -1149,6 +1198,12 @@ func TestPaymentService_HandlePaymentNotification(t *testing.T) {
 
 		mockPaymentRepo.EXPECT().FindPaymentByOrderID("order-123").Return(payment, nil)
 		mockPaymentRepo.EXPECT().UpdatePaymentAndOrderStatus(gomock.Any(), "order-123", "processing").Return(nil)
+		order := createTestOrder()
+		order.OrderItems = []entity.OrderItem{{
+			ID: "item-1", ProductVariantID: "variant-1", Quantity: 1, PriceAtPurchase: 100.0,
+			ProductVariant: &entity.ProductVariant{Name: "Test Product"},
+		}}
+		mockPaymentRepo.EXPECT().GetOrderWithItems("order-123").Return(order, nil)
 
 		// Act
 		err := service.HandlePaymentNotification(notification)
@@ -1165,7 +1220,7 @@ func TestPaymentService_HandlePaymentNotification(t *testing.T) {
 		mockPaymentRepo := mocks.NewMockPaymentRepository(ctrl)
 		mockCartRepo := mocks.NewMockCartRepository(ctrl)
 		mockSnapClient := mocks.NewMockSnapClientInterface(ctrl)
-		service := createTestPaymentService(mockPaymentRepo, mockCartRepo, mockSnapClient)
+		service := createTestPaymentService(ctrl, mockPaymentRepo, mockCartRepo, mockSnapClient)
 
 		payment := createTestPayment()
 		notification := request.PaymentNotificationRequest{
@@ -1294,11 +1349,12 @@ func TestNewPaymentServiceWithMidtrans(t *testing.T) {
 		mockCartRepo := mocks.NewMockCartRepository(ctrl)
 		mockMailer := mocks.NewMockMailer(ctrl)
 		mockWhatsApp := mocks.NewMockWhatsApp(ctrl)
+		mockTelegram := mocks.NewMockTelegramAPI(ctrl)
 		serverKey := "test-server-key"
 		isProduction := false
 
 		// Act
-		service := NewPaymentServiceWithMidtrans(mockPaymentRepo, mockCartRepo, serverKey, isProduction, "http://localhost:8080", mockMailer, mockWhatsApp)
+		service := NewPaymentServiceWithMidtrans(mockPaymentRepo, mockCartRepo, serverKey, isProduction, "http://localhost:8080", mockMailer, mockWhatsApp, mockTelegram, "", 0, 0)
 
 		// Assert
 		assert.NotNil(t, service)
@@ -1316,11 +1372,12 @@ func TestNewPaymentServiceWithMidtrans(t *testing.T) {
 		mockCartRepo := mocks.NewMockCartRepository(ctrl)
 		mockMailer := mocks.NewMockMailer(ctrl)
 		mockWhatsApp := mocks.NewMockWhatsApp(ctrl)
+		mockTelegram := mocks.NewMockTelegramAPI(ctrl)
 		serverKey := "test-server-key"
 		isProduction := true
 
 		// Act
-		service := NewPaymentServiceWithMidtrans(mockPaymentRepo, mockCartRepo, serverKey, isProduction, "http://localhost:8080", mockMailer, mockWhatsApp)
+		service := NewPaymentServiceWithMidtrans(mockPaymentRepo, mockCartRepo, serverKey, isProduction, "http://localhost:8080", mockMailer, mockWhatsApp, mockTelegram, "", 0, 0)
 
 		// Assert
 		assert.NotNil(t, service)
@@ -1340,7 +1397,7 @@ func TestPaymentService_CreateOrder_ErrorCases(t *testing.T) {
 		mockPaymentRepo := mocks.NewMockPaymentRepository(ctrl)
 		mockCartRepo := mocks.NewMockCartRepository(ctrl)
 		mockSnapClient := mocks.NewMockSnapClientInterface(ctrl)
-		service := createTestPaymentService(mockPaymentRepo, mockCartRepo, mockSnapClient)
+		service := createTestPaymentService(ctrl, mockPaymentRepo, mockCartRepo, mockSnapClient)
 
 		emptyCart := &entity.Cart{
 			ID:        "cart-123",
@@ -1381,7 +1438,7 @@ func TestPaymentService_CreateOrder_ErrorCases(t *testing.T) {
 		mockPaymentRepo := mocks.NewMockPaymentRepository(ctrl)
 		mockCartRepo := mocks.NewMockCartRepository(ctrl)
 		mockSnapClient := mocks.NewMockSnapClientInterface(ctrl)
-		service := createTestPaymentService(mockPaymentRepo, mockCartRepo, mockSnapClient)
+		service := createTestPaymentService(ctrl, mockPaymentRepo, mockCartRepo, mockSnapClient)
 
 		req := request.CreateOrderRequest{
 			CartID:               "cart-123",
@@ -1418,7 +1475,7 @@ func TestPaymentService_CreateOrder_ErrorCases(t *testing.T) {
 		mockPaymentRepo := mocks.NewMockPaymentRepository(ctrl)
 		mockCartRepo := mocks.NewMockCartRepository(ctrl)
 		mockSnapClient := mocks.NewMockSnapClientInterface(ctrl)
-		service := createTestPaymentService(mockPaymentRepo, mockCartRepo, mockSnapClient)
+		service := createTestPaymentService(ctrl, mockPaymentRepo, mockCartRepo, mockSnapClient)
 
 		cart := createTestCartWithItems()
 		req := request.CreateOrderRequest{
@@ -1460,7 +1517,7 @@ func TestPaymentService_CreatePayment_ErrorCases(t *testing.T) {
 		mockPaymentRepo := mocks.NewMockPaymentRepository(ctrl)
 		mockCartRepo := mocks.NewMockCartRepository(ctrl)
 		mockSnapClient := mocks.NewMockSnapClientInterface(ctrl)
-		service := createTestPaymentService(mockPaymentRepo, mockCartRepo, mockSnapClient)
+		service := createTestPaymentService(ctrl, mockPaymentRepo, mockCartRepo, mockSnapClient)
 
 		order := createTestOrder()
 		mockPaymentRepo.EXPECT().FindOrderByID("order-123").Return(order, nil)
@@ -1487,7 +1544,7 @@ func TestPaymentService_CreatePayment_ErrorCases(t *testing.T) {
 		mockPaymentRepo := mocks.NewMockPaymentRepository(ctrl)
 		mockCartRepo := mocks.NewMockCartRepository(ctrl)
 		mockSnapClient := mocks.NewMockSnapClientInterface(ctrl)
-		service := createTestPaymentService(mockPaymentRepo, mockCartRepo, mockSnapClient)
+		service := createTestPaymentService(ctrl, mockPaymentRepo, mockCartRepo, mockSnapClient)
 
 		order := createTestOrder()
 		mockPaymentRepo.EXPECT().FindOrderByID("order-123").Return(order, nil)
@@ -1511,7 +1568,7 @@ func TestPaymentService_CreatePayment_ErrorCases(t *testing.T) {
 		mockPaymentRepo := mocks.NewMockPaymentRepository(ctrl)
 		mockCartRepo := mocks.NewMockCartRepository(ctrl)
 		mockSnapClient := mocks.NewMockSnapClientInterface(ctrl)
-		service := createTestPaymentService(mockPaymentRepo, mockCartRepo, mockSnapClient)
+		service := createTestPaymentService(ctrl, mockPaymentRepo, mockCartRepo, mockSnapClient)
 
 		order := createTestOrder()
 		mockPaymentRepo.EXPECT().FindOrderByID("order-123").Return(order, nil)
@@ -1538,7 +1595,7 @@ func TestPaymentService_CreatePayment_ErrorCases(t *testing.T) {
 		mockPaymentRepo := mocks.NewMockPaymentRepository(ctrl)
 		mockCartRepo := mocks.NewMockCartRepository(ctrl)
 		mockSnapClient := mocks.NewMockSnapClientInterface(ctrl)
-		service := createTestPaymentService(mockPaymentRepo, mockCartRepo, mockSnapClient)
+		service := createTestPaymentService(ctrl, mockPaymentRepo, mockCartRepo, mockSnapClient)
 
 		order := createTestOrder()
 		mockPaymentRepo.EXPECT().FindOrderByID("order-123").Return(order, nil)
@@ -1565,7 +1622,7 @@ func TestPaymentService_CreatePayment_ErrorCases(t *testing.T) {
 		mockPaymentRepo := mocks.NewMockPaymentRepository(ctrl)
 		mockCartRepo := mocks.NewMockCartRepository(ctrl)
 		mockSnapClient := mocks.NewMockSnapClientInterface(ctrl)
-		service := createTestPaymentService(mockPaymentRepo, mockCartRepo, mockSnapClient)
+		service := createTestPaymentService(ctrl, mockPaymentRepo, mockCartRepo, mockSnapClient)
 
 		order := createTestOrder()
 		snapResponse := &snap.Response{
