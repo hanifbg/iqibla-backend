@@ -102,10 +102,11 @@ func TestRepository_GetProvinces(t *testing.T) {
 			}))
 			defer server.Close()
 
-			// Create repository with test server URL
+			// Create repository with test server URL and a non-nil HTTP client
 			repo := NewRepository(Config{
 				APIKey:  "test-api-key",
 				BaseURL: server.URL,
+				Client:  server.Client(),
 			})
 
 			// Execute test
@@ -270,10 +271,11 @@ func TestRepository_GetCities(t *testing.T) {
 			}))
 			defer server.Close()
 
-			// Create repository with test server URL
+			// Create repository with test server URL and a non-nil HTTP client
 			repo := NewRepository(Config{
 				APIKey:  "test-api-key",
 				BaseURL: server.URL,
+				Client:  server.Client(),
 			})
 
 			// Execute test

@@ -8,14 +8,14 @@ import (
 	"github.com/hanifbg/landing_backend/internal/model/request"
 	"github.com/hanifbg/landing_backend/internal/model/response"
 	"github.com/hanifbg/landing_backend/internal/repository"
-	repoMocks "github.com/hanifbg/landing_backend/internal/repository/mocks"
+	repoMocks "github.com/hanifbg/landing_backend/internal/service/shipping/mocks"
 	"github.com/stretchr/testify/assert"
 )
 
 // Helper function to create a test shipping service
 func createTestShippingService(mockRepo repository.ShippingRepository) *ShippingService {
 	return &ShippingService{
-		shippingRepo: mockRepo,
+		ShippingRepo: mockRepo,
 	}
 }
 
@@ -443,7 +443,7 @@ func TestNewShippingService(t *testing.T) {
 		service := createTestShippingService(mockRepo)
 
 		assert.NotNil(t, service)
-		assert.Equal(t, mockRepo, service.shippingRepo)
+		assert.Equal(t, mockRepo, service.ShippingRepo)
 	})
 }
 
