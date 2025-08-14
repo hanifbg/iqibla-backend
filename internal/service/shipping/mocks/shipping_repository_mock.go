@@ -93,3 +93,18 @@ func (mr *MockShippingRepositoryMockRecorder) GetProvinces(provinceID interface{
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProvinces", reflect.TypeOf((*MockShippingRepository)(nil).GetProvinces), provinceID)
 }
+
+// ValidateAWB mocks base method.
+func (m *MockShippingRepository) ValidateAWB(awbNumber, courier string, lastPhoneNumber *string) (*response.RajaOngkirTrackingResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ValidateAWB", awbNumber, courier, lastPhoneNumber)
+	ret0, _ := ret[0].(*response.RajaOngkirTrackingResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ValidateAWB indicates an expected call of ValidateAWB.
+func (mr *MockShippingRepositoryMockRecorder) ValidateAWB(awbNumber, courier, lastPhoneNumber interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ValidateAWB", reflect.TypeOf((*MockShippingRepository)(nil).ValidateAWB), awbNumber, courier, lastPhoneNumber)
+}
